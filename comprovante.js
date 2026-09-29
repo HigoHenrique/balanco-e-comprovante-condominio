@@ -70,20 +70,26 @@ const Comprovante = (() => {
     }
   }
 
-  // ── Scale Preview for Mobile ───────────────────────────────
+  // ── Scale Preview for Mobile / Desktop ─────────────────────
   function _scalePreview() {
     const wrapper = document.querySelector('.preview-wrapper');
+    const frame   = document.querySelector('.receipt-paper-frame');
     const preview = document.getElementById('receipt-preview');
     if (!wrapper || !preview) return;
 
-    const RECEIPT_WIDTH = 540;
-    const available = wrapper.clientWidth;
-    const scale = Math.min(1, available / RECEIPT_WIDTH);
+    const RECEIPT_WIDTH = 580;
+    const available = (wrapper.clientWidth || 580) - 16;
+    const scale = Math.min(1, Math.max(0.35, available / RECEIPT_WIDTH));
 
-    preview.style.transform = `scale(${scale})`;
-    // Adjust wrapper height so it doesn't leave a gap
-    const naturalHeight = preview.scrollHeight;
-    wrapper.style.height = `${naturalHeight * scale}px`;
+    const target = frame || preview;
+    target.style.transform = `scale(${scale})`;
+    target.style.transformOrigin = 'top center';
+
+    // Compute actual rendered height with margin to guarantee no bottom cutoff
+    const naturalHeight = preview.offsetHeight || preview.scrollHeight;
+    const computedHeight = Math.ceil(naturalHeight * scale) + 20;
+    wrapper.style.minHeight = `${computedHeight}px`;
+    wrapper.style.height = `${computedHeight}px`;
   }
 
   // ── Read Form Values ───────────────────────────────────────
@@ -251,9 +257,11 @@ const Comprovante = (() => {
       await document.fonts.ready;
 
       const preview = document.getElementById('receipt-preview');
-      // Temporarily reset transform for capture
-      const prevTransform = preview.style.transform;
-      preview.style.transform = 'scale(1)';
+      const frame   = document.querySelector('.receipt-paper-frame');
+
+      // Temporarily reset frame transform for full resolution capture
+      const prevFrameTransform = frame ? frame.style.transform : '';
+      if (frame) frame.style.transform = 'none';
 
       const canvas = await html2canvas(preview, {
         scale: 2,
@@ -262,7 +270,7 @@ const Comprovante = (() => {
         logging: false,
       });
 
-      preview.style.transform = prevTransform;
+      if (frame) frame.style.transform = prevFrameTransform;
 
       const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
       const quality  = format === 'jpg' ? 0.95 : undefined;
@@ -296,8 +304,10 @@ const Comprovante = (() => {
       await document.fonts.ready;
 
       const preview = document.getElementById('receipt-preview');
-      const prevTransform = preview.style.transform;
-      preview.style.transform = 'scale(1)';
+      const frame   = document.querySelector('.receipt-paper-frame');
+
+      const prevFrameTransform = frame ? frame.style.transform : '';
+      if (frame) frame.style.transform = 'none';
 
       const canvas = await html2canvas(preview, {
         scale: 2.5,
@@ -306,7 +316,7 @@ const Comprovante = (() => {
         logging: false,
       });
 
-      preview.style.transform = prevTransform;
+      if (frame) frame.style.transform = prevFrameTransform;
 
       const imgData = canvas.toDataURL('image/png');
 
@@ -322,7 +332,7 @@ const Comprovante = (() => {
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       // Scale image to fit A4 width with margins
-      const margin = 40;
+      const margin = 35;
       const imgWidth  = pdfWidth - margin * 2;
       const imgHeight = (canvas.height / canvas.width) * imgWidth;
       const yPos = (pdfHeight - imgHeight) / 2; // vertically centered

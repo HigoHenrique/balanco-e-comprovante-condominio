@@ -216,11 +216,12 @@
           </div>
 
           <div class="preview-wrapper">
-            <!-- ══ RECEIPT TEMPLATE (Layout Fiscal / Bancário) ═════
-                 Esta div é capturada pelo html2canvas para exportação.
-                 Design profissional estilo Recibo Bancário / DANFE
-                 ══════════════════════════════════════════════════ -->
-            <div id="receipt-preview" class="receipt-fiscal">
+            <!-- Frame com borda preta simulando a folha/papel (não capturado na exportação) -->
+            <div class="receipt-paper-frame">
+              <!-- ══ RECEIPT TEMPLATE (Layout Fiscal / Bancário) ═════
+                   Esta div é capturada pelo html2canvas para exportação.
+                   ══════════════════════════════════════════════════ -->
+              <div id="receipt-preview" class="receipt-fiscal">
 
               <!-- Header Section -->
               <div class="rf-header">
@@ -336,7 +337,8 @@
               </div>
 
             </div><!-- /receipt-preview -->
-          </div><!-- /preview-wrapper -->
+          </div><!-- /receipt-paper-frame -->
+        </div><!-- /preview-wrapper -->
 
           <p class="preview-scroll-hint mt-12">
             ↕️ Role para ver o comprovante completo

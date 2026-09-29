@@ -516,54 +516,40 @@ input.error, select.error { border-color: var(--danger); }
   gap: 6px;
 }
 
-/* ── Preview Wrapper & Scaling ──────────────────────────── */
+/* ── Preview Wrapper & Paper Frame ───────────────────────── */
 .preview-wrapper {
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: #f8fafc;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.receipt-paper-frame {
+  border: 2.5px solid #000000; /* Borda preta indicando o fim do papel (não exportada) */
+  box-shadow: 0 10px 32px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.08);
+  border-radius: 2px;
+  background: #ffffff;
+  display: block;
+  transform-origin: top center;
+  margin: 0 auto;
 }
 
 /* ── Receipt Template (Layout Fiscal / Bancário) ────────── */
 #receipt-preview.receipt-fiscal {
-  width: 540px;
-  transform-origin: top left;
+  width: 580px; /* Tamanho maior e mais legível */
   background: #ffffff;
   color: #0f172a;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  border: 1.5px solid #334155;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  border: none;
   padding: 0;
-  margin: 0 auto;
-}
-
-/* 1. Topbar / Linha Digitável */
-.rf-topbar {
-  background: #0f172a;
-  color: #e2e8f0;
-  padding: 6px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: .65rem;
-  font-weight: 600;
-  letter-spacing: .5px;
-  border-bottom: 1px solid #334155;
-}
-
-.rf-control-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  letter-spacing: .8px;
-}
-
-.rf-doc-type {
-  background: rgba(255,255,255,.15);
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: 1px;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* 2. Header */

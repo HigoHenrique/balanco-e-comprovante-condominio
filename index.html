@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Sistema de gestão condominial — Condomínio Jardim Petrópolis. Gere comprovantes de pagamento e balanços mensais facilmente.">
+  <meta name="theme-color" content="#1d4ed8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Jardim Petrópolis — Gestão Condominial</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════════════════════ -->
+  <header id="app-header">
+    <div class="brand">
+      <div class="brand-icon">🏢</div>
+      <div>
+        <span class="brand-name">Jardim Petrópolis</span>
+        <span class="brand-sub">Quadra 34 • Bloco L</span>
+      </div>
+    </div>
+
+    <!-- Desktop Navigation (hidden on mobile via CSS) -->
+    <nav id="desktop-nav">
+      <button class="desktop-nav-tab active" data-tab="comprovante">
+        📄 Comprovante
+      </button>
+      <button class="desktop-nav-tab" data-tab="balanco">
+        📊 Balanço
+      </button>
+    </nav>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════════════════════════════════ -->
+  <main id="app-main">
+
+    <!-- ────────────────────────────────────────────────────────
+         TELA 1: COMPROVANTE DE PAGAMENTO
+         ──────────────────────────────────────────────────────── -->
+    <section id="screen-comprovante" class="screen active">
+      <div class="comprovante-layout">
+
+        <!-- Left: Form Panel -->
+        <div class="form-panel">
+          <div class="panel-header">
+            <h1>📄 Gerar Comprovante</h1>
+            <p>Preencha os dados do morador e o comprovante será gerado automaticamente ao lado.</p>
+          </div>
+
+          <form id="form-comprovante" novalidate autocomplete="off">
+
+            <!-- Nome -->
+            <div class="form-group">
+              <label for="input-nome">Nome do Morador *</label>
+              <input
+                type="text"
+                id="input-nome"
+                placeholder="Ex: João da Silva"
+                autocomplete="off"
+                inputmode="text"
+                required
+              >
+            </div>
+
+            <!-- Tipo de Cobrança / Serviço -->
+            <div class="form-group">
+              <label for="input-tipo-cobranca">Finalidade / Tipo da Cobrança</label>
+              <select id="input-tipo-cobranca">
+                <option value="Taxa Condominial Ordinária" selected>🏢 Taxa Condominial Ordinária (Padrão)</option>
+                <option value="Taxa Extra">⚡ Taxa Extra (Obras / Manutenção / Fundo)</option>
+                <option value="Aluguel de Salão / Espaço">🎉 Aluguel de Salão de Festas / Espaço</option>
+                <option value="Taxa de Mudança">📦 Taxa de Mudança / Entrada</option>
+                <option value="Serviço Específico">🛠️ Serviço Específico / Reparo</option>
+                <option value="_custom">✏️ Outro (Digitar personalizado)...</option>
+              </select>
+            </div>
+
+            <!-- Input personalizado (aparece quando seleciona 'Outro') -->
+            <div class="form-group hidden" id="group-tipo-custom">
+              <label for="input-tipo-custom">Nome da Taxa / Serviço Personalizado *</label>
+              <input
+                type="text"
+                id="input-tipo-custom"
+                placeholder="Ex: Reforma da Fachada, Pintura, Conserto do Portão..."
+                inputmode="text"
+              >
+            </div>
+
+            <!-- Apartamento + Bloco -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-apto">Apartamento *</label>
+                <input
+                  type="text"
+                  id="input-apto"
+                  placeholder="Ex: 101"
+                  inputmode="text"
+                  required
+                >
+              </div>
+              <div class="form-group">
+                <label for="input-bloco">Bloco</label>
+                <input
+                  type="text"
+                  id="input-bloco"
+                  placeholder="L"
+                  value="L"
+                  inputmode="text"
+                >
+              </div>
+            </div>
+
+            <!-- Quadra + Valor -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-quadra">Quadra</label>
+                <input
+                  type="text"
+                  id="input-quadra"
+                  placeholder="34"
+                  value="34"
+                  inputmode="text"
+                >
+              </div>
+              <div class="form-group">
+                <label for="input-valor">Valor (R$) *</label>
+                <input
+                  type="number"
+                  id="input-valor"
+                  placeholder="0,00"
+                  step="0.01"
+                  min="0"
+                  inputmode="decimal"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Mês + Ano -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-mes">Mês de Referência *</label>
+                <select id="input-mes" required>
+                  <!-- populated by JS -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="input-ano">Ano *</label>
+                <input
+                  type="number"
+                  id="input-ano"
+                  placeholder="2025"
+                  min="2020"
+                  max="2099"
+                  inputmode="numeric"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Observações -->
+            <div class="form-group">
+              <label for="input-descricao">Observações <span style="font-weight:400;text-transform:none;">(opcional)</span></label>
+              <textarea
+                id="input-descricao"
+                placeholder="Ex: Taxa condominial referente ao mês de outubro"
+                rows="2"
+              ></textarea>
+            </div>
+
+          </form><!-- /form-comprovante -->
+
+          <hr class="divider">
+
+          <!-- Export Buttons -->
+          <div class="export-section">
+            <p class="export-label">📤 Exportar e baixar comprovante</p>
+            <div class="export-buttons">
+              <button id="btn-export-png" class="btn btn-export" title="Baixar como imagem PNG">
+                <span class="export-icon">🖼️</span>
+                PNG
+              </button>
+              <button id="btn-export-jpg" class="btn btn-export" title="Baixar como imagem JPEG">
+                <span class="export-icon">📷</span>
+                JPEG
+              </button>
+              <button id="btn-export-pdf" class="btn btn-export btn-primary" title="Baixar como PDF">
+                <span class="export-icon">📄</span>
+                PDF
+              </button>
+            </div>
+            <p class="export-hint">
+              💡 <strong>Dica:</strong> Use <strong>PNG</strong> ou <strong>JPEG</strong> para enviar pelo WhatsApp. Use <strong>PDF</strong> para imprimir ou enviar por e-mail.
+            </p>
+          </div>
+        </div><!-- /form-panel -->
+
+        <!-- Right: Preview Panel -->
+        <div class="preview-panel">
+          <div class="panel-header">
+            <h2>👁️ Prévia do Comprovante</h2>
+            <p>Atualizado automaticamente enquanto você digita.</p>
+          </div>
+
+          <div class="preview-wrapper">
+            <!-- ══ RECEIPT TEMPLATE (Layout Fiscal / Bancário) ═════
+                 Esta div é capturada pelo html2canvas para exportação.
+                 Design profissional estilo Recibo Bancário / DANFE
+                 ══════════════════════════════════════════════════ -->
+            <div id="receipt-preview" class="receipt-fiscal">
+
+              <!-- Header Section -->
+              <div class="rf-header">
+                <div class="rf-issuer">
+                  <div class="rf-issuer-title">CONDOMÍNIO RESIDENCIAL JARDIM PETRÓPOLIS</div>
+                  <div class="rf-issuer-meta">
+                    <span>Quadra 34 • Bloco L</span>
+                    <span>Recife - PE</span>
+                    <span class="rf-doc-nature">DOCUMENTO DE COMPROVAÇÃO DE QUITAÇÃO</span>
+                  </div>
+                </div>
+                <div class="rf-doc-badge">
+                  <div class="rf-doc-title" id="rv-doctitle">RECIBO DE QUITAÇÃO</div>
+                  <div class="rf-doc-meta">
+                    <div class="rf-meta-row"><span class="rf-lbl">NÚMERO:</span> <strong id="rv-number">2025.10-0001</strong></div>
+                    <div class="rf-meta-row"><span class="rf-lbl">EMISSÃO:</span> <strong id="rv-date">29/09/2025</strong></div>
+                    <div class="rf-meta-row"><span class="rf-lbl">ESPÉCIE:</span> <strong>R$ - REAL</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 1: Identificação do Morador / Sacado -->
+              <div class="rf-section">
+                <div class="rf-section-title">1. IDENTIFICAÇÃO DO CONDÔMINO / PAGADOR</div>
+                <div class="rf-grid">
+                  <div class="rf-cell rf-cell-wide">
+                    <span class="rf-cell-label">NOME DO CONDÔMINO / MORADOR</span>
+                    <span class="rf-cell-val placeholder" id="rv-nome">Nome do morador</span>
+                  </div>
+                  <div class="rf-cell">
+                    <span class="rf-cell-label">APARTAMENTO</span>
+                    <span class="rf-cell-val placeholder" id="rv-apto">Nº apto</span>
+                  </div>
+                  <div class="rf-cell">
+                    <span class="rf-cell-label">BLOCO</span>
+                    <span class="rf-cell-val" id="rv-bloco">L</span>
+                  </div>
+                  <div class="rf-cell">
+                    <span class="rf-cell-label">QUADRA</span>
+                    <span class="rf-cell-val" id="rv-quadra">34</span>
+                  </div>
+                  <div class="rf-cell">
+                    <span class="rf-cell-label">SITUAÇÃO</span>
+                    <span class="rf-status-tag">✓ QUITADO</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Discriminação dos Valores -->
+              <div class="rf-section">
+                <div class="rf-section-title">2. DISCRIMINAÇÃO DOS VALORES E COMPETÊNCIA</div>
+                <table class="rf-table">
+                  <thead>
+                    <tr>
+                      <th style="width:50px;">CÓD</th>
+                      <th>DESCRIÇÃO DO LANÇAMENTO</th>
+                      <th>COMPETÊNCIA</th>
+                      <th style="text-align:right; width:120px;">VALOR NOMINAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="rf-code" id="rv-itemcode">0101</td>
+                      <td><strong id="rv-itemdesc">Taxa Condominial Ordinária</strong></td>
+                      <td id="rv-periodo" class="placeholder">Mês / Ano</td>
+                      <td style="text-align:right; font-weight:700;" id="rv-valornominal">R$ 0,00</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Totais em Grade Bancária -->
+                <div class="rf-totals-grid">
+                  <div class="rf-tot-cell">
+                    <span class="rf-cell-label">(-) DESCONTOS / ABATIMENTOS</span>
+                    <span class="rf-tot-subval">R$ 0,00</span>
+                  </div>
+                  <div class="rf-tot-cell">
+                    <span class="rf-cell-label">(+) JUROS / MULTA</span>
+                    <span class="rf-tot-subval">R$ 0,00</span>
+                  </div>
+                  <div class="rf-tot-cell rf-tot-highlight">
+                    <span class="rf-cell-label rf-highlight-label">(=) VALOR TOTAL LIQUIDADO</span>
+                    <span class="rf-tot-mainval placeholder" id="rv-valor">R$ 0,00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 3: Observações -->
+              <div class="rf-section" id="rv-obs-container">
+                <div class="rf-section-title">3. OBSERVAÇÕES / INFORMAÇÕES COMPLEMENTARES</div>
+                <div class="rf-obs-box">
+                  <p id="rv-obs" class="rf-obs-text">Taxa condominial ordinária referente à manutenção e despesas comuns.</p>
+                </div>
+              </div>
+
+              <!-- Section 4: Termo Legal de Quitação e Assinatura -->
+              <div class="rf-section rf-legal-section">
+                <div class="rf-legal-text">
+                  <strong>DECLARAÇÃO DE QUITAÇÃO:</strong> Declaramos para os devidos fins de direito que a unidade acima identificada efetuou o pagamento integral da taxa referente à competência discriminada, outorgando plena quitação quanto ao período citado.
+                </div>
+
+                <div class="rf-sign-container">
+                  <div class="rf-sign-box">
+                    <div class="rf-digital-stamp">
+                      <span class="rf-stamp-title">QUITADO</span>
+                      <span class="rf-stamp-sub">ADMINISTRAÇÃO</span>
+                      <span class="rf-stamp-date" id="rv-stampdate">29/09/2025</span>
+                    </div>
+                    <div class="rf-sign-line"></div>
+                    <span class="rf-sign-label">ADMINISTRAÇÃO CONDOMINIAL</span>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /receipt-preview -->
+          </div><!-- /preview-wrapper -->
+
+          <p class="preview-scroll-hint mt-12">
+            ↕️ Role para ver o comprovante completo
+          </p>
+        </div><!-- /preview-panel -->
+
+      </div><!-- /comprovante-layout -->
+    </section><!-- /screen-comprovante -->
+
+
+    <!-- ────────────────────────────────────────────────────────
+         TELA 2: BALANÇO DO CONDOMÍNIO
+         ──────────────────────────────────────────────────────── -->
+    <section id="screen-balanco" class="screen">
+
+      <!-- Page Title -->
+      <div style="margin-bottom:16px;">
+        <h1>📊 Balanço do Condomínio</h1>
+        <p>Registre receitas e despesas para prestar contas aos moradores.</p>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card income">
+          <div class="summary-card-icon">💚</div>
+          <div class="summary-card-info">
+            <span class="summary-card-label">Receitas</span>
+            <span class="summary-card-value" id="total-receitas">R$ 0,00</span>
+          </div>
+        </div>
+        <div class="summary-card expense">
+          <div class="summary-card-icon">🔴</div>
+          <div class="summary-card-info">
+            <span class="summary-card-label">Despesas</span>
+            <span class="summary-card-value" id="total-despesas">R$ 0,00</span>
+          </div>
+        </div>
+        <div class="summary-card balance">
+          <div class="summary-card-icon">💰</div>
+          <div class="summary-card-info">
+            <span class="summary-card-label">Saldo</span>
+            <span class="summary-card-value" id="saldo-total">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls: Filter + Add Button -->
+      <div class="balanco-controls">
+        <div class="filter-group">
+          <select id="filter-mes" title="Filtrar por mês">
+            <!-- populated by JS -->
+          </select>
+          <select id="filter-ano" title="Filtrar por ano">
+            <!-- populated by JS -->
+          </select>
+        </div>
+        <button id="btn-add-lancamento" class="btn btn-primary">
+          ➕ Novo Lançamento
+        </button>
+      </div>
+
+      <!-- Add / Edit Form (hidden by default) -->
+      <div id="form-lancamento-wrapper" class="form-card hidden">
+        <h3 id="form-lancamento-title">Novo Lançamento</h3>
+        <p style="font-size:.85rem; margin-top:2px;">Preencha os campos abaixo e clique em Salvar.</p>
+
+        <form id="form-lancamento" novalidate>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label for="input-categoria">Categoria *</label>
+            <select id="input-categoria">
+              <!-- populated by JS -->
+            </select>
+          </div>
+
+          <!-- Custom category input (shown only when "Nova categoria..." is selected) -->
+          <div class="form-group hidden" id="custom-cat-group">
+            <label for="input-categoria-custom">Nome da nova categoria *</label>
+            <input
+              type="text"
+              id="input-categoria-custom"
+              placeholder="Ex: Portaria, Jardinagem, Segurança..."
+              inputmode="text"
+            >
+            <span class="field-hint">ℹ️ Esta categoria será salva para uso futuro.</span>
+          </div>
+
+          <!-- Tipo (Receita / Despesa) -->
+          <div class="form-group">
+            <label>Tipo de Lançamento *</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="tipo" value="despesa" id="tipo-despesa" checked>
+                <span class="radio-custom expense">↓ Despesa</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="tipo" value="receita" id="tipo-receita">
+                <span class="radio-custom income">↑ Receita</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Valor + Mês + Ano -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-lancamento-valor">Valor (R$) *</label>
+              <input
+                type="number"
+                id="input-lancamento-valor"
+                placeholder="0,00"
+                step="0.01"
+                min="0"
+                inputmode="decimal"
+              >
+            </div>
+            <div class="form-group">
+              <label for="input-lancamento-mes">Mês *</label>
+              <select id="input-lancamento-mes">
+                <!-- populated by JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-lancamento-ano">Ano *</label>
+            <input
+              type="number"
+              id="input-lancamento-ano"
+              placeholder="2025"
+              min="2020"
+              max="2099"
+              inputmode="numeric"
+            >
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="btn-cancel-lancamento" class="btn btn-ghost">
+              ✕ Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              💾 Salvar
+            </button>
+          </div>
+
+        </form><!-- /form-lancamento -->
+      </div><!-- /form-lancamento-wrapper -->
+
+      <!-- Table of Entries -->
+      <div class="table-wrapper">
+        <div class="table-header">
+          <h3>📋 Lançamentos</h3>
+          <span class="field-hint">Clique em ✏️ para editar ou 🗑️ para remover</span>
+        </div>
+
+        <div class="table-scroll">
+          <table class="lancamentos-table">
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th>Tipo</th>
+                <th>Referência</th>
+                <th>Valor</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lancamentos-tbody">
+              <!-- populated by JS -->
+            </tbody>
+            <tfoot id="lancamentos-totals" class="hidden">
+              <tr class="totals-row">
+                <td colspan="2" style="color:var(--text-muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.5px;">Total do período</td>
+                <td style="color:var(--success); white-space:nowrap;" id="totals-receitas">R$ 0,00</td>
+                <td style="color:var(--danger); white-space:nowrap;" id="totals-despesas">R$ 0,00</td>
+                <td style="white-space:nowrap; text-align:right;" id="totals-saldo">R$ 0,00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="lancamentos-empty" class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <h3>Nenhum lançamento ainda</h3>
+          <p>Clique em <strong>"Novo Lançamento"</strong> acima para começar a registrar receitas e despesas do condomínio.</p>
+        </div>
+      </div><!-- /table-wrapper -->
+
+      <!-- Export Button -->
+      <div class="balanco-export">
+        <button id="btn-export-balanco-pdf" class="btn btn-primary btn-lg">
+          📄 Exportar Balanço em PDF
+        </button>
+        <p class="field-hint mt-8 text-center">
+          ℹ️ O PDF inclui o resumo financeiro e todos os lançamentos do filtro selecionado.
+        </p>
+      </div>
+
+    </section><!-- /screen-balanco -->
+
+  </main><!-- /app-main -->
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       BOTTOM NAVIGATION (Mobile)
+       ══════════════════════════════════════════════════════════ -->
+  <nav id="bottom-nav" role="navigation" aria-label="Navegação principal">
+    <button class="nav-tab active" data-tab="comprovante" aria-label="Tela de Comprovante">
+      <span class="nav-tab-icon">📄</span>
+      <span class="nav-tab-label">Comprovante</span>
+    </button>
+    <button class="nav-tab" data-tab="balanco" aria-label="Tela de Balanço">
+      <span class="nav-tab-icon">📊</span>
+      <span class="nav-tab-label">Balanço</span>
+    </button>
+  </nav>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       TOAST NOTIFICATIONS
+       ══════════════════════════════════════════════════════════ -->
+  <div id="toast-container" role="status" aria-live="polite"></div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       PRINT VIEW (hidden - used for PDF export of balance)
+       ══════════════════════════════════════════════════════════ -->
+  <div id="print-balanco" style="display:none; position:absolute; left:-9999px; top:0; width:800px;"></div>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       EXTERNAL LIBRARIES (CDN)
+       ══════════════════════════════════════════════════════════ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+          integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGE2rbL3ZpXe3ixXWGkyCKKbV9WKBbVQ=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfls3aW3iSeQ=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+
+
+  <!-- ══════════════════════════════════════════════════════════
+       APP SCRIPTS (order matters)
+       ══════════════════════════════════════════════════════════ -->
+  <script src="storage.js"></script>
+  <script src="comprovante.js"></script>
+  <script src="balanco.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>

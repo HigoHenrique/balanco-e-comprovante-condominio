@@ -1,0 +1,375 @@
+'use strict';
+
+/**
+ * Comprovante — Módulo da Tela 1.
+ * Gerencia o formulário, a prévia ao vivo e a exportação.
+ */
+const Comprovante = (() => {
+
+  // ── Constants ──────────────────────────────────────────────
+  const CONDO_NAME = 'Condomínio Jardim Petrópolis';
+  const CONDO_SUB  = 'Quadra 34 • Bloco L';
+
+  // ── Init ───────────────────────────────────────────────────
+  function init() {
+    _buildForm();
+    _bindInputs();
+    _bindExportButtons();
+    _scalePreview();
+    _updatePreview(); // render with empty state
+    window.addEventListener('resize', _scalePreview);
+  }
+
+  // ── Build Form ─────────────────────────────────────────────
+  function _buildForm() {
+    // Populate month select
+    const mesSelect = document.getElementById('input-mes');
+    if (!mesSelect) return;
+
+    const meses = App.getMeses();
+    const currentMes = App.getCurrentMonth();
+
+    meses.forEach((nome, i) => {
+      const opt = document.createElement('option');
+      opt.value = i + 1;
+      opt.textContent = nome;
+      if (i + 1 === currentMes) opt.selected = true;
+      mesSelect.appendChild(opt);
+    });
+
+    // Default year
+    const anoInput = document.getElementById('input-ano');
+    if (anoInput) anoInput.value = App.getCurrentYear();
+  }
+
+  // ── Bind Inputs → Live Preview ─────────────────────────────
+  function _bindInputs() {
+    const ids = ['input-nome', 'input-apto', 'input-bloco', 'input-quadra',
+                 'input-mes', 'input-ano', 'input-valor', 'input-descricao',
+                 'input-tipo-custom'];
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', _updatePreview);
+    });
+
+    // Dropdown de tipo de cobrança
+    const tipoSelect = document.getElementById('input-tipo-cobranca');
+    if (tipoSelect) {
+      tipoSelect.addEventListener('change', () => {
+        const isCustom = tipoSelect.value === '_custom';
+        const customGroup = document.getElementById('group-tipo-custom');
+        if (customGroup) {
+          customGroup.classList.toggle('hidden', !isCustom);
+          if (isCustom) {
+            document.getElementById('input-tipo-custom')?.focus();
+          }
+        }
+        _updatePreview();
+      });
+    }
+  }
+
+  // ── Scale Preview for Mobile ───────────────────────────────
+  function _scalePreview() {
+    const wrapper = document.querySelector('.preview-wrapper');
+    const preview = document.getElementById('receipt-preview');
+    if (!wrapper || !preview) return;
+
+    const RECEIPT_WIDTH = 540;
+    const available = wrapper.clientWidth;
+    const scale = Math.min(1, available / RECEIPT_WIDTH);
+
+    preview.style.transform = `scale(${scale})`;
+    // Adjust wrapper height so it doesn't leave a gap
+    const naturalHeight = preview.scrollHeight;
+    wrapper.style.height = `${naturalHeight * scale}px`;
+  }
+
+  // ── Read Form Values ───────────────────────────────────────
+  function _getFormData() {
+    const nome    = (document.getElementById('input-nome')?.value   || '').trim();
+    const apto    = (document.getElementById('input-apto')?.value   || '').trim();
+    const bloco   = (document.getElementById('input-bloco')?.value  || 'L').trim();
+    const quadra  = (document.getElementById('input-quadra')?.value || '34').trim();
+    const mesIdx  = parseInt(document.getElementById('input-mes')?.value || '0');
+    const ano     = (document.getElementById('input-ano')?.value    || App.getCurrentYear()).toString().trim();
+    const valorRaw= parseFloat(document.getElementById('input-valor')?.value || '0');
+    const desc    = (document.getElementById('input-descricao')?.value || '').trim();
+
+    // Tipo de cobrança
+    const tipoSelect = document.getElementById('input-tipo-cobranca')?.value || 'Taxa Condominial Ordinária';
+    const tipoCustom = (document.getElementById('input-tipo-custom')?.value || '').trim();
+    let finalTipo = tipoSelect;
+    if (tipoSelect === '_custom') {
+      finalTipo = tipoCustom || 'Taxa Personalizada';
+    }
+
+    const meses = App.getMeses();
+    const mesNome = mesIdx >= 1 && mesIdx <= 12 ? meses[mesIdx - 1] : null;
+
+    return { nome, apto, bloco, quadra, mesNome, ano, valorRaw, desc, finalTipo, tipoSelect };
+  }
+
+  // ── Update Preview ─────────────────────────────────────────
+  function _updatePreview() {
+    const { nome, apto, bloco, quadra, mesNome, ano, valorRaw, desc, finalTipo, tipoSelect } = _getFormData();
+
+    // Helper to set a field — shows placeholder if empty
+    const setField = (id, value, placeholder) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (value) {
+        el.textContent = value;
+        el.classList.remove('placeholder');
+      } else {
+        el.textContent = placeholder;
+        el.classList.add('placeholder');
+      }
+    };
+
+    setField('rv-nome',    nome,    'Nome do morador');
+    setField('rv-apto',    apto,    'Nº apto');
+    setField('rv-bloco',   bloco,   'L');
+    setField('rv-quadra',  quadra,  '34');
+    setField('rv-periodo', mesNome && ano ? `${mesNome}/${ano}` : null, 'Mês / Ano');
+
+    // Título e Descrição do Lançamento
+    const itemDescEl = document.getElementById('rv-itemdesc');
+    const itemCodeEl = document.getElementById('rv-itemcode');
+    const docTitleEl = document.getElementById('rv-doctitle');
+
+    if (itemDescEl) itemDescEl.textContent = finalTipo;
+    if (itemCodeEl) {
+      itemCodeEl.textContent = tipoSelect === 'Taxa Condominial Ordinária' ? '0101' : '0201';
+    }
+
+    if (docTitleEl) {
+      if (tipoSelect === 'Taxa Condominial Ordinária') {
+        docTitleEl.textContent = 'RECIBO DE QUITAÇÃO';
+      } else if (tipoSelect.includes('Taxa Extra')) {
+        docTitleEl.textContent = 'RECIBO - TAXA EXTRA';
+      } else {
+        docTitleEl.textContent = 'RECIBO DE QUITAÇÃO';
+      }
+    }
+
+    // Valor Nominal & Valor Total
+    const valorNominalEl = document.getElementById('rv-valornominal');
+    const valorEl        = document.getElementById('rv-valor');
+
+    const formattedVal = valorRaw > 0 ? App.formatCurrency(valorRaw) : 'R$ 0,00';
+
+    if (valorNominalEl) {
+      valorNominalEl.textContent = formattedVal;
+    }
+
+    if (valorEl) {
+      valorEl.textContent = formattedVal;
+      if (valorRaw > 0) {
+        valorEl.classList.remove('placeholder');
+      } else {
+        valorEl.classList.add('placeholder');
+      }
+    }
+
+    // Observações
+    const obsEl = document.getElementById('rv-obs');
+    if (obsEl) {
+      if (desc) {
+        obsEl.textContent = desc;
+      } else {
+        if (tipoSelect === 'Taxa Condominial Ordinária') {
+          obsEl.textContent = 'Taxa condominial ordinária referente à manutenção e despesas comuns das áreas coletivas.';
+        } else {
+          obsEl.textContent = `Pagamento referente a: ${finalTipo}. Quitação plena da referida obrigação.`;
+        }
+      }
+    }
+
+    // Receipt number (formal format)
+    const recNumber = _getReceiptNumber(ano, apto);
+    const numEl = document.getElementById('rv-number');
+    if (numEl) {
+      numEl.textContent = recNumber;
+    }
+
+    // Emission date & Stamp date
+    const todayStr = App.formatDate();
+    const dateEl  = document.getElementById('rv-date');
+    const stampEl = document.getElementById('rv-stampdate');
+    if (dateEl)  dateEl.textContent  = todayStr;
+    if (stampEl) stampEl.textContent = todayStr;
+
+    // Re-scale after content update
+    requestAnimationFrame(_scalePreview);
+  }
+
+  function _getReceiptNumber(ano, apto) {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const unit = String(apto || '01').padStart(3, '0').slice(-3);
+    return `${ano || d.getFullYear()}.${mm}-${unit}`;
+  }
+
+  // ── Validation ─────────────────────────────────────────────
+  function _validate() {
+    const { nome, apto, mesNome, ano, valorRaw } = _getFormData();
+    const errors = [];
+
+    if (!nome)   errors.push('Nome do morador é obrigatório');
+    if (!apto)   errors.push('Número do apartamento é obrigatório');
+    if (!mesNome) errors.push('Selecione o mês de referência');
+    if (!ano || ano.length < 4) errors.push('Informe o ano corretamente');
+    if (valorRaw <= 0) errors.push('Informe o valor pago (deve ser maior que zero)');
+
+    return errors;
+  }
+
+  // ── Export Buttons ─────────────────────────────────────────
+  function _bindExportButtons() {
+    document.getElementById('btn-export-png')
+      ?.addEventListener('click', () => _exportImage('png'));
+    document.getElementById('btn-export-jpg')
+      ?.addEventListener('click', () => _exportImage('jpg'));
+    document.getElementById('btn-export-pdf')
+      ?.addEventListener('click', _exportPdf);
+  }
+
+  // ── Export Image (PNG / JPEG) ──────────────────────────────
+  async function _exportImage(format) {
+    const errors = _validate();
+    if (errors.length) {
+      App.showToast(errors[0], 'warning');
+      return;
+    }
+
+    const btn = document.getElementById(`btn-export-${format}`);
+    _setBtnLoading(btn, true);
+
+    try {
+      await document.fonts.ready;
+
+      const preview = document.getElementById('receipt-preview');
+      // Temporarily reset transform for capture
+      const prevTransform = preview.style.transform;
+      preview.style.transform = 'scale(1)';
+
+      const canvas = await html2canvas(preview, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      preview.style.transform = prevTransform;
+
+      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+      const quality  = format === 'jpg' ? 0.95 : undefined;
+      const dataUrl  = canvas.toDataURL(mimeType, quality);
+
+      const { nome, apto } = _getFormData();
+      const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.${format}`);
+
+      _downloadFile(dataUrl, filename);
+      App.showToast(`Comprovante exportado como ${format.toUpperCase()}! ✅`, 'success');
+    } catch (err) {
+      console.error('[Comprovante] Erro ao exportar imagem:', err);
+      App.showToast('Erro ao gerar imagem. Tente novamente.', 'error');
+    } finally {
+      _setBtnLoading(btn, false);
+    }
+  }
+
+  // ── Export PDF ─────────────────────────────────────────────
+  async function _exportPdf() {
+    const errors = _validate();
+    if (errors.length) {
+      App.showToast(errors[0], 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-export-pdf');
+    _setBtnLoading(btn, true);
+
+    try {
+      await document.fonts.ready;
+
+      const preview = document.getElementById('receipt-preview');
+      const prevTransform = preview.style.transform;
+      preview.style.transform = 'scale(1)';
+
+      const canvas = await html2canvas(preview, {
+        scale: 2.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      preview.style.transform = prevTransform;
+
+      const imgData = canvas.toDataURL('image/png');
+
+      // A4 at 72dpi: 595.28 x 841.89 pt
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+
+      const pdfWidth  = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      // Scale image to fit A4 width with margins
+      const margin = 40;
+      const imgWidth  = pdfWidth - margin * 2;
+      const imgHeight = (canvas.height / canvas.width) * imgWidth;
+      const yPos = (pdfHeight - imgHeight) / 2; // vertically centered
+
+      pdf.addImage(imgData, 'PNG', margin, Math.max(margin, yPos), imgWidth, imgHeight);
+
+      const { nome, apto } = _getFormData();
+      const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.pdf`);
+      pdf.save(filename);
+
+      App.showToast('Comprovante exportado em PDF! ✅', 'success');
+    } catch (err) {
+      console.error('[Comprovante] Erro ao exportar PDF:', err);
+      App.showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+    } finally {
+      _setBtnLoading(btn, false);
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────
+  function _downloadFile(dataUrl, filename) {
+    const link = document.createElement('a');
+    link.href     = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function _sanitizeFilename(name) {
+    return name
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove accents
+      .replace(/[^a-zA-Z0-9.\-_]/g, '-')
+      .toLowerCase();
+  }
+
+  function _setBtnLoading(btn, loading) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (loading) {
+      btn.dataset.originalHtml = btn.innerHTML;
+      btn.innerHTML = `<div class="spinner"></div> Gerando...`;
+    } else {
+      btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+    }
+  }
+
+  // ── Expose ─────────────────────────────────────────────────
+  return { init };
+})();

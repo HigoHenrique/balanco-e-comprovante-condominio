@@ -250,6 +250,11 @@ const Comprovante = (() => {
       return;
     }
 
+    if (typeof html2canvas === 'undefined') {
+      App.showToast('Biblioteca html2canvas não foi encontrada. Recarregue a página.', 'error');
+      return;
+    }
+
     const btn = document.getElementById(`btn-export-${format}`);
     _setBtnLoading(btn, true);
 
@@ -294,6 +299,11 @@ const Comprovante = (() => {
     const errors = _validate();
     if (errors.length) {
       App.showToast(errors[0], 'warning');
+      return;
+    }
+
+    if (typeof html2canvas === 'undefined' || !window.jspdf) {
+      App.showToast('Bibliotecas de exportação (html2canvas/jsPDF) não carregadas. Recarregue a página.', 'error');
       return;
     }
 

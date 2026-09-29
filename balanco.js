@@ -450,6 +450,11 @@ const Balanco = (() => {
 
   // ── Export Balance PDF ──────────────────────────────────────
   async function _exportBalancoPdf() {
+    if (typeof html2canvas === 'undefined' || !window.jspdf) {
+      App.showToast('Bibliotecas de exportação (html2canvas/jsPDF) não carregadas. Recarregue a página.', 'error');
+      return;
+    }
+
     const btn = document.getElementById('btn-export-balanco-pdf');
     if (btn) { btn.disabled = true; btn.dataset.orig = btn.innerHTML; btn.innerHTML = '<div class="spinner"></div> Gerando PDF...'; }
 

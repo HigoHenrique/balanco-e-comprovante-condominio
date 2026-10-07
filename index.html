@@ -218,127 +218,159 @@
           <div class="preview-wrapper">
             <!-- Frame com borda preta simulando a folha/papel (não capturado na exportação) -->
             <div class="receipt-paper-frame">
-              <!-- ══ RECEIPT TEMPLATE (Layout Fiscal / Bancário) ═════
-                   Esta div é capturada pelo html2canvas para exportação.
-                   ══════════════════════════════════════════════════ -->
-              <div id="receipt-preview" class="receipt-fiscal">
 
-              <!-- Header Section -->
-              <div class="rf-header">
-                <div class="rf-issuer">
-                  <div class="rf-issuer-title">CONDOMÍNIO RESIDENCIAL JARDIM PETRÓPOLIS</div>
-                  <div class="rf-issuer-meta">
-                    <span>Quadra 34 • Bloco L</span>
-                    <span>Recife - PE</span>
-                    <span class="rf-doc-nature">DOCUMENTO DE COMPROVAÇÃO DE QUITAÇÃO</span>
-                  </div>
-                </div>
-                <div class="rf-doc-badge">
-                  <div class="rf-doc-title" id="rv-doctitle">RECIBO DE QUITAÇÃO</div>
-                  <div class="rf-doc-meta">
-                    <div class="rf-meta-row"><span class="rf-lbl">NÚMERO:</span> <strong id="rv-number">2025.10-0001</strong></div>
-                    <div class="rf-meta-row"><span class="rf-lbl">EMISSÃO:</span> <strong id="rv-date">29/09/2025</strong></div>
-                    <div class="rf-meta-row"><span class="rf-lbl">ESPÉCIE:</span> <strong>R$ - REAL</strong></div>
-                  </div>
-                </div>
-              </div>
+              <!-- ══════════════════════════════════════════════════════
+                   RECEIPT TEMPLATE — 100% inline styles + table layout
+                   Renderiza perfeitamente com html2canvas (sem flexbox)
+                   ══════════════════════════════════════════════════════ -->
+              <div id="receipt-preview" style="width:500px;background:#ffffff;color:#0f172a;font-family:'Inter',Arial,sans-serif;font-size:13px;line-height:18px;border:none;padding:0;margin:0;box-sizing:border-box;">
 
-              <!-- Section 1: Identificação do Morador / Sacado -->
-              <div class="rf-section">
-                <div class="rf-section-title">1. IDENTIFICAÇÃO DO CONDÔMINO / PAGADOR</div>
-                <div class="rf-grid">
-                  <div class="rf-cell rf-cell-wide">
-                    <span class="rf-cell-label">NOME DO CONDÔMINO / MORADOR</span>
-                    <span class="rf-cell-val placeholder" id="rv-nome">Nome do morador</span>
-                  </div>
-                  <div class="rf-cell">
-                    <span class="rf-cell-label">APARTAMENTO</span>
-                    <span class="rf-cell-val placeholder" id="rv-apto">Nº apto</span>
-                  </div>
-                  <div class="rf-cell">
-                    <span class="rf-cell-label">BLOCO</span>
-                    <span class="rf-cell-val" id="rv-bloco">L</span>
-                  </div>
-                  <div class="rf-cell">
-                    <span class="rf-cell-label">QUADRA</span>
-                    <span class="rf-cell-val" id="rv-quadra">34</span>
-                  </div>
-                  <div class="rf-cell">
-                    <span class="rf-cell-label">SITUAÇÃO</span>
-                    <span class="rf-status-tag">✓ QUITADO</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Section 2: Discriminação dos Valores -->
-              <div class="rf-section">
-                <div class="rf-section-title">2. DISCRIMINAÇÃO DOS VALORES E COMPETÊNCIA</div>
-                <table class="rf-table">
-                  <thead>
-                    <tr>
-                      <th style="width:50px;">CÓD</th>
-                      <th>DESCRIÇÃO DO LANÇAMENTO</th>
-                      <th>COMPETÊNCIA</th>
-                      <th style="text-align:right; width:120px;">VALOR NOMINAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td class="rf-code" id="rv-itemcode">0101</td>
-                      <td><strong id="rv-itemdesc">Taxa Condominial Ordinária</strong></td>
-                      <td id="rv-periodo" class="placeholder">Mês / Ano</td>
-                      <td style="text-align:right; font-weight:700;" id="rv-valornominal">R$ 0,00</td>
-                    </tr>
-                  </tbody>
+                <!-- HEADER: Identificação do Emissor e Cabeçalho do Recibo -->
+                <table style="width:100%;border-collapse:collapse;border-bottom:2px solid #0f172a;background:#ffffff;" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:12px 14px;border-right:1px solid #cbd5e1;vertical-align:middle;">
+                      <div style="font-size:14px;font-weight:800;color:#0f172a;line-height:18px;text-transform:uppercase;margin:0 0 4px 0;">CONDOMÍNIO RESIDENCIAL JARDIM PETRÓPOLIS</div>
+                      <div style="font-size:11px;color:#475569;line-height:16px;margin:0;">Quadra 34 • Bloco L</div>
+                      <div style="font-size:11px;color:#475569;line-height:16px;margin:0 0 4px 0;">Recife - PE</div>
+                      <div style="font-size:10px;font-weight:700;color:#1e3a8a;line-height:14px;text-transform:uppercase;">DOCUMENTO DE COMPROVAÇÃO DE QUITAÇÃO</div>
+                    </td>
+                    <td style="width:180px;background:#f8fafc;padding:10px 14px;vertical-align:middle;box-sizing:border-box;">
+                      <div id="rv-doctitle" style="font-size:11px;font-weight:800;color:#0f172a;text-align:center;padding-bottom:5px;border-bottom:1px solid #cbd5e1;text-transform:uppercase;line-height:16px;">RECIBO DE QUITAÇÃO</div>
+                      <table style="width:100%;border-collapse:collapse;margin-top:6px;" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="font-size:10px;line-height:16px;color:#64748b;font-weight:600;padding:2px 0;">Nº RECIBO:</td>
+                          <td style="font-size:10px;line-height:16px;color:#0f172a;font-weight:700;text-align:right;padding:2px 0;"><span id="rv-number">2026.10-0001</span></td>
+                        </tr>
+                        <tr>
+                          <td style="font-size:10px;line-height:16px;color:#64748b;font-weight:600;padding:2px 0;">EMISSÃO:</td>
+                          <td style="font-size:10px;line-height:16px;color:#0f172a;font-weight:700;text-align:right;padding:2px 0;"><span id="rv-date">—</span></td>
+                        </tr>
+                        <tr>
+                          <td style="font-size:10px;line-height:16px;color:#64748b;font-weight:600;padding:2px 0;">MOEDA:</td>
+                          <td style="font-size:10px;line-height:16px;color:#0f172a;font-weight:700;text-align:right;padding:2px 0;">BRL (R$)</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
                 </table>
 
-                <!-- Totais em Grade Bancária -->
-                <div class="rf-totals-grid">
-                  <div class="rf-tot-cell">
-                    <span class="rf-cell-label">(-) DESCONTOS / ABATIMENTOS</span>
-                    <span class="rf-tot-subval">R$ 0,00</span>
-                  </div>
-                  <div class="rf-tot-cell">
-                    <span class="rf-cell-label">(+) JUROS / MULTA</span>
-                    <span class="rf-tot-subval">R$ 0,00</span>
-                  </div>
-                  <div class="rf-tot-cell rf-tot-highlight">
-                    <span class="rf-cell-label rf-highlight-label">(=) VALOR TOTAL LIQUIDADO</span>
-                    <span class="rf-tot-mainval placeholder" id="rv-valor">R$ 0,00</span>
+                <!-- SEÇÃO 1: Identificação do Pagador (Tabela Única Unificada) -->
+                <div>
+                  <div style="background:#f1f5f9;border-bottom:1px solid #cbd5e1;font-size:10px;font-weight:800;color:#334155;padding:6px 14px;text-transform:uppercase;line-height:14px;">1. IDENTIFICAÇÃO DO CONDÔMINO / PAGADOR</div>
+                  <table style="width:100%;border-collapse:collapse;table-layout:fixed;background:#ffffff;" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td colspan="2" style="width:72%;padding:8px 14px;border-bottom:1px solid #cbd5e1;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">NOME DO CONDÔMINO / MORADOR</div>
+                        <div id="rv-nome" style="font-size:13px;font-weight:700;color:#94a3b8;line-height:18px;font-style:italic;">Nome do morador</div>
+                      </td>
+                      <td style="width:28%;padding:8px 14px;border-bottom:1px solid #cbd5e1;vertical-align:middle;text-align:center;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:4px;">SITUAÇÃO</div>
+                        <span style="display:inline-block;color:#15803d;font-weight:800;font-size:11px;background:#f0fdf4;border:1px solid #86efac;padding:3px 8px;border-radius:4px;line-height:16px;">✓ QUITADO</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="width:36%;padding:8px 14px;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">APARTAMENTO</div>
+                        <div id="rv-apto" style="font-size:13px;font-weight:700;color:#94a3b8;line-height:18px;font-style:italic;">Nº apto</div>
+                      </td>
+                      <td style="width:36%;padding:8px 14px;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">BLOCO</div>
+                        <div id="rv-bloco" style="font-size:13px;font-weight:700;color:#0f172a;line-height:18px;">L</div>
+                      </td>
+                      <td style="width:28%;padding:8px 14px;vertical-align:middle;text-align:center;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">QUADRA</div>
+                        <div id="rv-quadra" style="font-size:13px;font-weight:700;color:#0f172a;line-height:18px;">34</div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- SEÇÃO 2: Discriminação dos Valores e Competência -->
+                <div>
+                  <div style="background:#f1f5f9;border-top:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1;font-size:10px;font-weight:800;color:#334155;padding:6px 14px;text-transform:uppercase;line-height:14px;">2. DISCRIMINAÇÃO DOS VALORES E COMPETÊNCIA</div>
+                  <table style="width:100%;border-collapse:collapse;table-layout:fixed;" cellpadding="0" cellspacing="0">
+                    <thead>
+                      <tr style="background:#f8fafc;">
+                        <th style="width:48px;border-bottom:1px solid #cbd5e1;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase;padding:7px 14px;text-align:left;line-height:13px;">CÓD</th>
+                        <th style="border-bottom:1px solid #cbd5e1;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase;padding:7px 14px;text-align:left;line-height:13px;">DESCRIÇÃO DO LANÇAMENTO</th>
+                        <th style="width:105px;border-bottom:1px solid #cbd5e1;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase;padding:7px 14px;text-align:center;line-height:13px;">COMPETÊNCIA</th>
+                        <th style="width:115px;border-bottom:1px solid #cbd5e1;color:#64748b;font-size:9px;font-weight:700;text-transform:uppercase;padding:7px 14px;text-align:right;line-height:13px;">VALOR NOMINAL</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td id="rv-itemcode" style="padding:9px 14px;color:#64748b;border-bottom:1px solid #cbd5e1;vertical-align:middle;font-family:monospace;font-size:11px;line-height:16px;">0101</td>
+                        <td style="padding:9px 14px;color:#0f172a;border-bottom:1px solid #cbd5e1;vertical-align:middle;line-height:16px;"><strong id="rv-itemdesc">Taxa Condominial Ordinária</strong></td>
+                        <td id="rv-periodo" style="padding:9px 14px;color:#94a3b8;border-bottom:1px solid #cbd5e1;vertical-align:middle;text-align:center;font-style:italic;line-height:16px;">Mês / Ano</td>
+                        <td id="rv-valornominal" style="padding:9px 14px;color:#0f172a;border-bottom:1px solid #cbd5e1;vertical-align:middle;text-align:right;font-weight:700;line-height:16px;">R$ 0,00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <!-- Totais -->
+                  <table style="width:100%;border-collapse:collapse;table-layout:fixed;" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:27%;background:#f8fafc;padding:8px 14px;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">(-) DESCONTOS</div>
+                        <div style="font-size:13px;font-weight:700;color:#334155;line-height:18px;">R$ 0,00</div>
+                      </td>
+                      <td style="width:27%;background:#f8fafc;padding:8px 14px;border-right:1px solid #cbd5e1;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;line-height:13px;margin-bottom:3px;">(+) ACRÉSCIMOS</div>
+                        <div style="font-size:13px;font-weight:700;color:#334155;line-height:18px;">R$ 0,00</div>
+                      </td>
+                      <td style="width:46%;background:#eff6ff;padding:8px 14px;border-left:2px solid #2563eb;vertical-align:middle;box-sizing:border-box;">
+                        <div style="font-size:9px;font-weight:800;color:#1e40af;text-transform:uppercase;line-height:13px;margin-bottom:3px;">(=) VALOR TOTAL LIQUIDADO</div>
+                        <div id="rv-valor" style="font-size:18px;font-weight:900;color:#93c5fd;line-height:22px;">R$ 0,00</div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- SEÇÃO 3: Observações -->
+                <div>
+                  <div style="background:#f1f5f9;border-top:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1;font-size:10px;font-weight:800;color:#334155;padding:6px 14px;text-transform:uppercase;line-height:14px;">3. OBSERVAÇÕES / INFORMAÇÕES COMPLEMENTARES</div>
+                  <div style="padding:9px 14px;background:#ffffff;min-height:36px;box-sizing:border-box;">
+                    <p id="rv-obs" style="font-size:11px;color:#334155;line-height:17px;margin:0;white-space:pre-wrap;word-break:break-word;">Taxa condominial ordinária referente à manutenção e despesas comuns das áreas coletivas.</p>
                   </div>
                 </div>
-              </div>
 
-              <!-- Section 3: Observações -->
-              <div class="rf-section" id="rv-obs-container">
-                <div class="rf-section-title">3. OBSERVAÇÕES / INFORMAÇÕES COMPLEMENTARES</div>
-                <div class="rf-obs-box">
-                  <p id="rv-obs" class="rf-obs-text">Taxa condominial ordinária referente à manutenção e despesas comuns.</p>
-                </div>
-              </div>
-
-              <!-- Section 4: Termo Legal de Quitação e Assinatura -->
-              <div class="rf-section rf-legal-section">
-                <div class="rf-legal-text">
-                  <strong>DECLARAÇÃO DE QUITAÇÃO:</strong> Declaramos para os devidos fins de direito que a unidade acima identificada efetuou o pagamento integral da taxa referente à competência discriminada, outorgando plena quitação quanto ao período citado.
-                </div>
-
-                <div class="rf-sign-container">
-                  <div class="rf-sign-box">
-                    <div class="rf-digital-stamp">
-                      <span class="rf-stamp-title">QUITADO</span>
-                      <span class="rf-stamp-sub">ADMINISTRAÇÃO</span>
-                      <span class="rf-stamp-date" id="rv-stampdate">29/09/2025</span>
-                    </div>
-                    <div class="rf-sign-line"></div>
-                    <span class="rf-sign-label">ADMINISTRAÇÃO CONDOMINIAL</span>
+                <!-- SEÇÃO 4: Termo Legal e Assinatura -->
+                <div style="background:#fafafa;border-top:1px solid #cbd5e1;">
+                  <div style="font-size:10px;color:#475569;line-height:16px;text-align:left;padding:9px 14px 8px 14px;border-bottom:1px dashed #cbd5e1;">
+                    <strong>DECLARAÇÃO FORMAL DE QUITAÇÃO:</strong> Declaramos para os devidos fins de direito que a unidade acima identificada efetuou o pagamento integral da taxa referente à competência discriminada neste recibo, outorgando plena quitação quanto ao período citado.
                   </div>
+                  <table style="width:100%;border-collapse:collapse;" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:12px 14px 14px 14px;text-align:right;vertical-align:middle;">
+                        <table style="width:160px;border-collapse:collapse;margin-left:auto;" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="padding:0 0 6px 0;text-align:center;">
+                              <table style="width:100%;border-collapse:collapse;border:2px solid #1e3a8a;background:#eff6ff;border-radius:4px;" cellpadding="0" cellspacing="0">
+                                <tr>
+                                  <td style="padding:6px 14px 2px 14px;text-align:center;font-size:13px;font-weight:900;letter-spacing:1px;line-height:16px;color:#1e3a8a;">QUITADO</td>
+                                </tr>
+                                <tr>
+                                  <td style="padding:0 14px 2px 14px;text-align:center;font-size:10px;font-weight:800;letter-spacing:0.5px;line-height:14px;color:#1e40af;">ADMINISTRAÇÃO</td>
+                                </tr>
+                                <tr>
+                                  <td style="padding:0 14px 6px 14px;text-align:center;">
+                                    <span id="rv-stampdate" style="font-size:10px;font-family:monospace;font-weight:700;line-height:14px;color:#2563eb;">—</span>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="border-top:1.5px solid #334155;padding:4px 0 0 0;text-align:center;font-size:9px;font-weight:800;color:#475569;letter-spacing:0.4px;line-height:13px;text-transform:uppercase;">ADMINISTRAÇÃO CONDOMINIAL</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
                 </div>
-              </div>
 
-            </div><!-- /receipt-preview -->
-          </div><!-- /receipt-paper-frame -->
-        </div><!-- /preview-wrapper -->
+              </div><!-- /receipt-preview -->
+            </div><!-- /receipt-paper-frame -->
+          </div><!-- /preview-wrapper -->
 
           <p class="preview-scroll-hint mt-12">
             ↕️ Role para ver o comprovante completo
@@ -572,6 +604,7 @@
   <!-- ══════════════════════════════════════════════════════════
        EXTERNAL LIBRARIES (LOCAL - 100% Offline e livre de CORS)
        ══════════════════════════════════════════════════════════ -->
+  <script src="lib/html-to-image.min.js"></script>
   <script src="lib/html2canvas.min.js"></script>
   <script src="lib/jspdf.umd.min.js"></script>
 

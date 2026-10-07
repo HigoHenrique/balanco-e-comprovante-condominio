@@ -523,7 +523,7 @@ input.error, select.error { border-color: var(--danger); }
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: #f8fafc;
-  padding: 12px;
+  padding: 4px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -531,40 +531,43 @@ input.error, select.error { border-color: var(--danger); }
 }
 
 .receipt-paper-frame {
-  border: 2.5px solid #000000; /* Borda preta indicando o fim do papel (não exportada) */
+  border: 2px solid #0f172a; /* Borda nítida indicando o papel */
   box-shadow: 0 10px 32px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.08);
-  border-radius: 2px;
+  border-radius: 3px;
   background: #ffffff;
-  display: block;
+  display: inline-block;
+  vertical-align: top; /* Remove espaço fantasma sem quebrar line-height e font-size */
   transform-origin: top center;
-  margin: 0 auto;
 }
 
-/* ── Receipt Template (Layout Fiscal / Bancário) ────────── */
-#receipt-preview.receipt-fiscal {
-  width: 580px; /* Tamanho maior e mais legível */
+#receipt-preview {
+  width: 500px;
   background: #ffffff;
   color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
   border: none;
   padding: 0;
   margin: 0;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
-/* 2. Header */
+/* 1. Header */
 .rf-header {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  border-bottom: 1.5px solid #334155;
+  border-bottom: 2px solid #0f172a;
   background: #ffffff;
 }
 
 .rf-issuer {
   flex: 1;
-  padding: 16px 16px;
-  border-right: 1.5px solid #334155;
+  padding: 14px 16px;
+  border-right: 1.5px solid #cbd5e1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -586,6 +589,7 @@ input.error, select.error { border-color: var(--danger); }
   margin-top: 6px;
   font-size: .7rem;
   color: #475569;
+  line-height: 1.3;
 }
 
 .rf-doc-nature {
@@ -608,14 +612,15 @@ input.error, select.error { border-color: var(--danger); }
 }
 
 .rf-doc-title {
-  font-size: .72rem;
+  font-size: .74rem;
   font-weight: 800;
   color: #0f172a;
   text-align: center;
   padding-bottom: 6px;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 1.5px solid #cbd5e1;
   letter-spacing: .6px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .rf-doc-meta {
@@ -624,6 +629,7 @@ input.error, select.error { border-color: var(--danger); }
   flex-direction: column;
   gap: 4px;
   font-size: .66rem;
+  line-height: 1.3;
 }
 
 .rf-meta-row {
@@ -637,9 +643,9 @@ input.error, select.error { border-color: var(--danger); }
   font-weight: 600;
 }
 
-/* 3. Sections & Section Headers */
+/* 2. Sections & Section Headers */
 .rf-section {
-  border-bottom: 1.5px solid #334155;
+  border-bottom: 1.5px solid #cbd5e1;
 }
 
 .rf-section:last-child {
@@ -653,45 +659,45 @@ input.error, select.error { border-color: var(--danger); }
   font-weight: 800;
   color: #334155;
   letter-spacing: .6px;
-  padding: 4px 12px;
+  padding: 5px 12px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
-/* 4. Grid de Dados do Morador */
-.rf-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr;
-  background: #cbd5e1;
-  gap: 1px;
-}
-
-.rf-cell {
+/* 3. Tabelas de Identificação (HTML nativo - renderiza 100% no html2canvas) */
+.rf-table-form {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
   background: #ffffff;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 48px;
 }
 
-.rf-cell-wide {
-  grid-column: span 1;
+.rf-table-form td {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.rf-table-sub td {
+  border-top: none;
 }
 
 .rf-cell-label {
-  font-size: .58rem;
+  font-size: .62rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: .4px;
-  line-height: 1.1;
-  margin-bottom: 3px;
+  line-height: 1.2;
+  margin-bottom: 4px;
 }
 
 .rf-cell-val {
-  font-size: .82rem;
+  font-size: .88rem;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.25;
   word-break: break-word;
 }
 
@@ -705,72 +711,76 @@ input.error, select.error { border-color: var(--danger); }
   display: inline-block;
   color: #15803d;
   font-weight: 800;
-  font-size: .72rem;
+  font-size: .74rem;
   background: #f0fdf4;
-  border: 1px solid #86efac;
-  padding: 3px 6px;
-  border-radius: 3px;
+  border: 1.5px solid #86efac;
+  padding: 4px 10px;
+  border-radius: 4px;
   text-align: center;
-  letter-spacing: .4px;
+  letter-spacing: .5px;
+  line-height: 1.2;
 }
 
-/* 5. Tabela de Discriminação */
-.rf-table {
+/* 4. Tabela de Itens / Discriminação */
+.rf-table-items {
   width: 100%;
   border-collapse: collapse;
-  font-size: .76rem;
+  table-layout: fixed;
+  font-size: .78rem;
 }
 
-.rf-table th {
-  background: #ffffff;
-  border-bottom: 1px solid #cbd5e1;
+.rf-table-items th {
+  background: #f8fafc;
+  border-bottom: 1.5px solid #cbd5e1;
   color: #64748b;
-  font-size: .6rem;
+  font-size: .62rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .4px;
-  padding: 6px 12px;
+  padding: 7px 12px;
   text-align: left;
+  line-height: 1.2;
 }
 
-.rf-table td {
-  padding: 8px 12px;
+.rf-table-items td {
+  padding: 9px 12px;
   color: #0f172a;
   border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
+  line-height: 1.3;
 }
 
 .rf-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   color: #64748b;
-  font-size: .7rem;
+  font-size: .72rem;
 }
 
-/* 6. Totais em Grade Bancária */
-.rf-totals-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.6fr;
-  background: #cbd5e1;
-  gap: 1px;
+/* 5. Tabela de Totais Financeiros */
+.rf-totals-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .rf-tot-cell {
   background: #f8fafc;
   padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .rf-tot-subval {
-  font-size: .8rem;
-  font-weight: 600;
-  color: #475569;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #334155;
+  line-height: 1.25;
 }
 
-.rf-tot-highlight {
+.rf-tot-main {
   background: #eff6ff;
-  border-left: 2px solid #2563eb;
+  border-left: 2.5px solid #2563eb !important;
 }
 
 .rf-highlight-label {
@@ -779,10 +789,11 @@ input.error, select.error { border-color: var(--danger); }
 }
 
 .rf-tot-mainval {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 900;
   color: #1e3a8a;
   letter-spacing: .3px;
+  line-height: 1.25;
 }
 
 .rf-tot-mainval.placeholder {
@@ -790,9 +801,9 @@ input.error, select.error { border-color: var(--danger); }
   font-weight: 500;
 }
 
-/* 7. Observações */
+/* 6. Observações */
 .rf-obs-box {
-  padding: 8px 12px;
+  padding: 9px 14px;
   background: #ffffff;
   min-height: 38px;
 }
@@ -800,33 +811,32 @@ input.error, select.error { border-color: var(--danger); }
 .rf-obs-text {
   font-size: .72rem;
   color: #334155;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-/* 8. Termo Legal & Assinatura */
+/* 7. Termo Legal & Assinatura Formal */
 .rf-legal-section {
-  padding: 10px 14px 12px;
   background: #fafafa;
+  border-top: 1.5px solid #cbd5e1;
 }
 
 .rf-legal-text {
-  font-size: .62rem;
-  color: #64748b;
+  font-size: .64rem;
+  color: #475569;
   line-height: 1.45;
   text-align: justify;
-  padding-bottom: 8px;
+  padding: 10px 14px 8px;
   border-bottom: 1px dashed #cbd5e1;
-  margin-bottom: 8px;
 }
 
 .rf-sign-container {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 2px 4px 0;
+  padding: 12px 16px 14px;
 }
 
-/* Assinatura / Carimbo */
+/* Assinatura e Carimbo Digital Nítido (Sem sobreposição) */
 .rf-sign-box {
   width: 190px;
   text-align: center;
@@ -839,46 +849,53 @@ input.error, select.error { border-color: var(--danger); }
   border: 1.5px solid #1e3a8a;
   background: #eff6ff;
   color: #1e3a8a;
-  padding: 3px 12px;
+  padding: 6px 14px;
   border-radius: 4px;
-  margin-bottom: 6px;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.15;
+  margin-bottom: 8px;
+  text-align: center;
+  display: inline-block;
+  box-sizing: border-box;
 }
 
 .rf-stamp-title {
-  font-size: .65rem;
+  font-size: .82rem;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  color: #1e3a8a;
 }
 
 .rf-stamp-sub {
-  font-size: .5rem;
-  font-weight: 700;
-  opacity: .85;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .8px;
+  line-height: 1.2;
+  margin-bottom: 3px;
+  color: #1e40af;
 }
 
 .rf-stamp-date {
-  font-size: .55rem;
-  font-family: ui-monospace, monospace;
-  font-weight: 600;
-  margin-top: 1px;
+  font-size: .6rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #2563eb;
 }
 
 .rf-sign-line {
   width: 100%;
-  border-top: 1px solid #334155;
-  margin-bottom: 4px;
+  border-top: 1.5px solid #334155;
+  margin-bottom: 5px;
 }
 
 .rf-sign-label {
-  font-size: .55rem;
-  font-weight: 700;
+  font-size: .6rem;
+  font-weight: 800;
   color: #475569;
-  letter-spacing: .4px;
+  letter-spacing: .5px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 /* =========================================================
@@ -1232,9 +1249,9 @@ input.error, select.error { border-color: var(--danger); }
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    background: #ffffff;
-    border: none;
-    padding: 0;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    padding: 4px;
   }
 
   .preview-scroll-hint {

@@ -450,8 +450,8 @@ const Balanco = (() => {
 
   // ── Export Balance PDF ──────────────────────────────────────
   async function _exportBalancoPdf() {
-    if (typeof html2canvas === 'undefined' || !window.jspdf) {
-      App.showToast('Bibliotecas de exportação (html2canvas/jsPDF) não carregadas. Recarregue a página.', 'error');
+    if (!window.jspdf || (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined')) {
+      App.showToast('Bibliotecas de exportação não carregadas. Recarregue a página.', 'error');
       return;
     }
 
@@ -470,17 +470,27 @@ const Balanco = (() => {
       await document.fonts.ready;
       await new Promise(r => setTimeout(r, 100)); // small delay for render
 
-      const canvas = await html2canvas(printEl, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: 800,
-      });
+      let canvas;
+      if (typeof htmlToImage !== 'undefined') {
+        canvas = await htmlToImage.toCanvas(printEl, {
+          pixelRatio: 2,
+          backgroundColor: '#ffffff',
+          width: 800,
+        });
+      } else {
+        canvas = await html2canvas(printEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          scrollX: 0,
+          scrollY: 0,
+          logging: false,
+          width: 800,
+        });
+      }
 
       printEl.style.display = 'none';
 
-      const imgData = canvas.toDataURL('image/png');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
@@ -489,21 +499,30 @@ const Balanco = (() => {
       const margin = 30;
       const imgW = pdfW - margin * 2;
       const imgH = (canvas.height / canvas.width) * imgW;
+      const pageH = pdfH - margin * 2;
 
-      // Handle multi-page if content is tall
-      if (imgH <= pdfH - margin * 2) {
-        pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH);
+      // Handle single or multi-page cleanly without image distortion
+      if (imgH <= pageH) {
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin, imgW, imgH);
       } else {
-        // Split into pages
-        const pageH = pdfH - margin * 2;
-        let remaining = imgH;
+        const pxPerPt = canvas.width / imgW;
+        const pageHPx = Math.floor(pageH * pxPerPt);
+        let srcY = 0;
         let pageNum = 0;
-        while (remaining > 0) {
+
+        while (srcY < canvas.height) {
           if (pageNum > 0) pdf.addPage();
-          const srcY = (pageNum * pageH) / imgH * canvas.height;
-          const sliceH = Math.min(pageH, remaining);
-          pdf.addImage(imgData, 'PNG', margin, margin, imgW, sliceH, undefined, 'FAST', 0);
-          remaining -= pageH;
+          const sliceHPx = Math.min(pageHPx, canvas.height - srcY);
+          const sliceH = sliceHPx / pxPerPt;
+
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = sliceHPx;
+          const sCtx = sliceCanvas.getContext('2d');
+          sCtx.drawImage(canvas, 0, srcY, canvas.width, sliceHPx, 0, 0, canvas.width, sliceHPx);
+
+          pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', margin, margin, imgW, sliceH);
+          srcY += sliceHPx;
           pageNum++;
         }
       }
@@ -563,21 +582,29 @@ const Balanco = (() => {
           <div style="margin-top:8px; opacity:.75; font-size:.8rem;">${periodoText}</div>
         </div>
 
-        <!-- Summary boxes -->
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px;">
-          <div style="border:2px solid #dcfce7; border-radius:10px; padding:16px; background:#f0fdf4; text-align:center;">
-            <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#16a34a; font-weight:700; margin-bottom:4px;">Total Receitas</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#16a34a;">${App.formatCurrency(totalReceitas)}</div>
-          </div>
-          <div style="border:2px solid #fee2e2; border-radius:10px; padding:16px; background:#fff7f7; text-align:center;">
-            <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#dc2626; font-weight:700; margin-bottom:4px;">Total Despesas</div>
-            <div style="font-size:1.1rem; font-weight:800; color:#dc2626;">${App.formatCurrency(totalDespesas)}</div>
-          </div>
-          <div style="border:2px solid #bfdbfe; border-radius:10px; padding:16px; background:#eff6ff; text-align:center;">
-            <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#1d4ed8; font-weight:700; margin-bottom:4px;">Saldo Disponível</div>
-            <div style="font-size:1.1rem; font-weight:800; color:${saldo >= 0 ? '#16a34a' : '#dc2626'};">${App.formatCurrency(saldo)}</div>
-          </div>
-        </div>
+        <!-- Summary boxes (Tabela compatível 100% com html2canvas) -->
+        <table style="width:100%; border-collapse:collapse; margin-bottom:24px;" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="width:32%; padding-right:8px; vertical-align:top;">
+              <div style="border:2px solid #dcfce7; border-radius:10px; padding:16px; background:#f0fdf4; text-align:center;">
+                <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#16a34a; font-weight:700; margin-bottom:4px;">Total Receitas</div>
+                <div style="font-size:1.1rem; font-weight:800; color:#16a34a;">${App.formatCurrency(totalReceitas)}</div>
+              </div>
+            </td>
+            <td style="width:36%; padding:0 4px; vertical-align:top;">
+              <div style="border:2px solid #fee2e2; border-radius:10px; padding:16px; background:#fff7f7; text-align:center;">
+                <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#dc2626; font-weight:700; margin-bottom:4px;">Total Despesas</div>
+                <div style="font-size:1.1rem; font-weight:800; color:#dc2626;">${App.formatCurrency(totalDespesas)}</div>
+              </div>
+            </td>
+            <td style="width:32%; padding-left:8px; vertical-align:top;">
+              <div style="border:2px solid #bfdbfe; border-radius:10px; padding:16px; background:#eff6ff; text-align:center;">
+                <div style="font-size:.7rem; text-transform:uppercase; letter-spacing:.5px; color:#1d4ed8; font-weight:700; margin-bottom:4px;">Saldo Disponível</div>
+                <div style="font-size:1.1rem; font-weight:800; color:${saldo >= 0 ? '#16a34a' : '#dc2626'};">${App.formatCurrency(saldo)}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <!-- Table -->
         ${items.length > 0 ? `
@@ -600,10 +627,12 @@ const Balanco = (() => {
         </table>` : '<p style="text-align:center; color:#94a3b8; padding:24px;">Nenhum lançamento no período selecionado.</p>'}
 
         <!-- Footer -->
-        <div style="margin-top:32px; padding-top:16px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; font-size:.75rem; color:#94a3b8;">
-          <span>Emitido em: ${App.formatDate()}</span>
-          <span>Condomínio Jardim Petrópolis — Sistema de Gestão</span>
-        </div>
+        <table style="width:100%; margin-top:32px; border-top:1px solid #e2e8f0; font-size:.75rem; color:#94a3b8;" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="text-align:left; padding-top:16px;">Emitido em: ${App.formatDate()}</td>
+            <td style="text-align:right; padding-top:16px;">Condomínio Jardim Petrópolis — Sistema de Gestão</td>
+          </tr>
+        </table>
       </div>
     `;
   }

@@ -72,24 +72,23 @@ const Comprovante = (() => {
 
   // ── Scale Preview for Mobile / Desktop ─────────────────────
   function _scalePreview() {
-    const wrapper = document.querySelector('.preview-wrapper');
-    const frame   = document.querySelector('.receipt-paper-frame');
-    const preview = document.getElementById('receipt-preview');
-    if (!wrapper || !preview) return;
+    const wrapper  = document.querySelector('.preview-wrapper');
+    const frame    = document.querySelector('.receipt-paper-frame');
+    const preview  = document.getElementById('receipt-preview');
+    if (!wrapper || !preview || !frame) return;
 
-    const RECEIPT_WIDTH = 580;
-    const available = (wrapper.clientWidth || 580) - 16;
+    const RECEIPT_WIDTH = 500;
+    const available = (wrapper.clientWidth || 500) - 8; // 4px padding on each side
     const scale = Math.min(1, Math.max(0.35, available / RECEIPT_WIDTH));
 
-    const target = frame || preview;
-    target.style.transform = `scale(${scale})`;
-    target.style.transformOrigin = 'top center';
+    frame.style.transform       = `scale(${scale})`;
+    frame.style.transformOrigin = 'top center';
 
-    // Compute actual rendered height with margin to guarantee no bottom cutoff
-    const naturalHeight = preview.offsetHeight || preview.scrollHeight;
-    const computedHeight = Math.ceil(naturalHeight * scale) + 20;
-    wrapper.style.minHeight = `${computedHeight}px`;
-    wrapper.style.height = `${computedHeight}px`;
+    // Ajusta altura do wrapper para evitar corte vertical
+    const naturalH = preview.scrollHeight || preview.offsetHeight;
+    const scaledH  = Math.ceil(naturalH * scale) + 16;
+    wrapper.style.height    = `${scaledH}px`;
+    wrapper.style.minHeight = `${scaledH}px`;
   }
 
   // ── Read Form Values ───────────────────────────────────────
@@ -121,24 +120,45 @@ const Comprovante = (() => {
   function _updatePreview() {
     const { nome, apto, bloco, quadra, mesNome, ano, valorRaw, desc, finalTipo, tipoSelect } = _getFormData();
 
-    // Helper to set a field — shows placeholder if empty
-    const setField = (id, value, placeholder) => {
+    // Helper for inline-style fields (placeholder via color+style)
+    const setInlineField = (id, value, placeholder) => {
       const el = document.getElementById(id);
       if (!el) return;
       if (value) {
         el.textContent = value;
-        el.classList.remove('placeholder');
+        el.style.color = '#0f172a';
+        el.style.fontStyle = 'normal';
+        el.style.fontWeight = '700';
       } else {
         el.textContent = placeholder;
-        el.classList.add('placeholder');
+        el.style.color = '#94a3b8';
+        el.style.fontStyle = 'italic';
+        el.style.fontWeight = '400';
       }
     };
 
-    setField('rv-nome',    nome,    'Nome do morador');
-    setField('rv-apto',    apto,    'Nº apto');
-    setField('rv-bloco',   bloco,   'L');
-    setField('rv-quadra',  quadra,  '34');
-    setField('rv-periodo', mesNome && ano ? `${mesNome}/${ano}` : null, 'Mês / Ano');
+    setInlineField('rv-nome',   nome,   'Nome do morador');
+    setInlineField('rv-apto',   apto,   'Nº apto');
+
+    // Bloco & Quadra always have values (defaults)
+    const blocoEl = document.getElementById('rv-bloco');
+    if (blocoEl) { blocoEl.textContent = bloco || 'L'; blocoEl.style.color = '#0f172a'; blocoEl.style.fontStyle = 'normal'; }
+    const quadraEl = document.getElementById('rv-quadra');
+    if (quadraEl) { quadraEl.textContent = quadra || '34'; quadraEl.style.color = '#0f172a'; quadraEl.style.fontStyle = 'normal'; }
+
+    // Período
+    const periodoEl = document.getElementById('rv-periodo');
+    if (periodoEl) {
+      if (mesNome && ano) {
+        periodoEl.textContent = `${mesNome}/${ano}`;
+        periodoEl.style.color = '#0f172a';
+        periodoEl.style.fontStyle = 'normal';
+      } else {
+        periodoEl.textContent = 'Mês / Ano';
+        periodoEl.style.color = '#94a3b8';
+        periodoEl.style.fontStyle = 'italic';
+      }
+    }
 
     // Título e Descrição do Lançamento
     const itemDescEl = document.getElementById('rv-itemdesc');
@@ -166,16 +186,14 @@ const Comprovante = (() => {
 
     const formattedVal = valorRaw > 0 ? App.formatCurrency(valorRaw) : 'R$ 0,00';
 
-    if (valorNominalEl) {
-      valorNominalEl.textContent = formattedVal;
-    }
+    if (valorNominalEl) valorNominalEl.textContent = formattedVal;
 
     if (valorEl) {
       valorEl.textContent = formattedVal;
       if (valorRaw > 0) {
-        valorEl.classList.remove('placeholder');
+        valorEl.style.color = '#1e3a8a'; // filled: dark blue
       } else {
-        valorEl.classList.add('placeholder');
+        valorEl.style.color = '#93c5fd'; // placeholder: light blue
       }
     }
 
@@ -196,9 +214,7 @@ const Comprovante = (() => {
     // Receipt number (formal format)
     const recNumber = _getReceiptNumber(ano, apto);
     const numEl = document.getElementById('rv-number');
-    if (numEl) {
-      numEl.textContent = recNumber;
-    }
+    if (numEl) numEl.textContent = recNumber;
 
     // Emission date & Stamp date
     const todayStr = App.formatDate();
@@ -242,6 +258,71 @@ const Comprovante = (() => {
       ?.addEventListener('click', _exportPdf);
   }
 
+  // ── Capture Receipt Data URL ───────────────────────────────
+  async function _captureReceiptDataUrl(format, quality = 0.95) {
+    await document.fonts.ready;
+
+    const preview = document.getElementById('receipt-preview');
+    if (!preview) throw new Error('Elemento de prévia não encontrado');
+
+    const frame = document.querySelector('.receipt-paper-frame');
+
+    // Desfaz temporariamente a escala responsiva do frame para captura em resolução 1:1 nativa (500px)
+    const prevTransform = frame ? frame.style.transform : '';
+    if (frame) {
+      frame.style.transform = 'none';
+    }
+
+    try {
+      // 1ª Opção: htmlToImage (renderização SVG nativa do motor do browser: 100% perfeita em borders, paddings e alinhamentos)
+      if (typeof htmlToImage !== 'undefined') {
+        const isJpg = format === 'jpg' || format === 'jpeg';
+        const options = {
+          pixelRatio: 3, // 1500px de largura (~300 DPI, ultra-nítido para WhatsApp, impressão e PDF)
+          backgroundColor: '#ffffff',
+          width: 500,
+          quality: isJpg ? quality : undefined,
+        };
+
+        if (isJpg) {
+          return await htmlToImage.toJpeg(preview, options);
+        } else {
+          return await htmlToImage.toPng(preview, options);
+        }
+      }
+
+      // Fallback: html2canvas
+      if (typeof html2canvas !== 'undefined') {
+        const canvas = await html2canvas(preview, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          scrollX: 0,
+          scrollY: 0,
+          logging: false,
+        });
+
+        if (format === 'jpg' || format === 'jpeg') {
+          const jpgCanvas = document.createElement('canvas');
+          jpgCanvas.width = canvas.width;
+          jpgCanvas.height = canvas.height;
+          const ctx = jpgCanvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, jpgCanvas.width, jpgCanvas.height);
+          ctx.drawImage(canvas, 0, 0);
+          return jpgCanvas.toDataURL('image/jpeg', quality);
+        }
+        return canvas.toDataURL('image/png');
+      }
+
+      throw new Error('Nenhuma biblioteca de renderização gráfica encontrada.');
+    } finally {
+      if (frame) {
+        frame.style.transform = prevTransform;
+      }
+    }
+  }
+
   // ── Export Image (PNG / JPEG) ──────────────────────────────
   async function _exportImage(format) {
     const errors = _validate();
@@ -250,8 +331,8 @@ const Comprovante = (() => {
       return;
     }
 
-    if (typeof html2canvas === 'undefined') {
-      App.showToast('Biblioteca html2canvas não foi encontrada. Recarregue a página.', 'error');
+    if (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined') {
+      App.showToast('Bibliotecas de exportação não carregadas. Recarregue a página.', 'error');
       return;
     }
 
@@ -259,28 +340,7 @@ const Comprovante = (() => {
     _setBtnLoading(btn, true);
 
     try {
-      await document.fonts.ready;
-
-      const preview = document.getElementById('receipt-preview');
-      const frame   = document.querySelector('.receipt-paper-frame');
-
-      // Temporarily reset frame transform for full resolution capture
-      const prevFrameTransform = frame ? frame.style.transform : '';
-      if (frame) frame.style.transform = 'none';
-
-      const canvas = await html2canvas(preview, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      if (frame) frame.style.transform = prevFrameTransform;
-
-      const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-      const quality  = format === 'jpg' ? 0.95 : undefined;
-      const dataUrl  = canvas.toDataURL(mimeType, quality);
-
+      const dataUrl = await _captureReceiptDataUrl(format, 0.95);
       const { nome, apto } = _getFormData();
       const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.${format}`);
 
@@ -302,8 +362,8 @@ const Comprovante = (() => {
       return;
     }
 
-    if (typeof html2canvas === 'undefined' || !window.jspdf) {
-      App.showToast('Bibliotecas de exportação (html2canvas/jsPDF) não carregadas. Recarregue a página.', 'error');
+    if (!window.jspdf || (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined')) {
+      App.showToast('Bibliotecas de exportação (htmlToImage/jsPDF) não carregadas. Recarregue a página.', 'error');
       return;
     }
 
@@ -311,26 +371,10 @@ const Comprovante = (() => {
     _setBtnLoading(btn, true);
 
     try {
-      await document.fonts.ready;
-
       const preview = document.getElementById('receipt-preview');
-      const frame   = document.querySelector('.receipt-paper-frame');
+      const dataUrl = await _captureReceiptDataUrl('png');
 
-      const prevFrameTransform = frame ? frame.style.transform : '';
-      if (frame) frame.style.transform = 'none';
-
-      const canvas = await html2canvas(preview, {
-        scale: 2.5,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-      });
-
-      if (frame) frame.style.transform = prevFrameTransform;
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // A4 at 72dpi: 595.28 x 841.89 pt
+      // A4 portrait: 595.28 x 841.89 pt
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -341,13 +385,15 @@ const Comprovante = (() => {
       const pdfWidth  = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      // Scale image to fit A4 width with margins
-      const margin = 35;
-      const imgWidth  = pdfWidth - margin * 2;
-      const imgHeight = (canvas.height / canvas.width) * imgWidth;
-      const yPos = (pdfHeight - imgHeight) / 2; // vertically centered
+      // Proporção de recibo formal centralizado na página A4
+      const imgWidth  = 460;
+      const naturalW  = preview ? (preview.offsetWidth || 500) : 500;
+      const naturalH  = preview ? (preview.offsetHeight || 600) : 600;
+      const imgHeight = (naturalH / naturalW) * imgWidth;
+      const xPos = (pdfWidth - imgWidth) / 2;
+      const yPos = Math.max(35, (pdfHeight - imgHeight) / 2);
 
-      pdf.addImage(imgData, 'PNG', margin, Math.max(margin, yPos), imgWidth, imgHeight);
+      pdf.addImage(dataUrl, 'PNG', xPos, yPos, imgWidth, imgHeight);
 
       const { nome, apto } = _getFormData();
       const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.pdf`);

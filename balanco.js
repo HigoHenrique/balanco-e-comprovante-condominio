@@ -152,6 +152,19 @@ const Balanco = (() => {
     // Export balance PDF
     document.getElementById('btn-export-balanco-pdf')
       ?.addEventListener('click', _exportBalancoPdf);
+
+    // Backup: export JSON
+    document.getElementById('btn-backup-exportar')
+      ?.addEventListener('click', _exportDados);
+
+    // Backup: import JSON (click proxy do input hidden)
+    document.getElementById('btn-backup-importar')
+      ?.addEventListener('click', () => {
+        document.getElementById('input-backup-file')?.click();
+      });
+
+    document.getElementById('input-backup-file')
+      ?.addEventListener('change', _importDados);
   }
 
   // ── Category Change Handler ─────────────────────────────────
@@ -446,6 +459,88 @@ const Balanco = (() => {
         saldoEl.style.color = saldo >= 0 ? 'var(--success)' : 'var(--danger)';
       }
     }
+  }
+
+  // ── Backup: Export JSON ────────────────────────────────────
+  function _exportDados() {
+    try {
+      const backup  = Storage.exportAll();
+      const json    = JSON.stringify(backup, null, 2);
+      const blob    = new Blob([json], { type: 'application/json' });
+      const url     = URL.createObjectURL(blob);
+      const date    = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+      const a  = document.createElement('a');
+      a.href   = url;
+      a.download = `backup-condominio-${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      App.showToast('Backup exportado com sucesso! 💾', 'success');
+    } catch (err) {
+      console.error('[Balanco] Erro ao exportar backup:', err);
+      App.showToast('Erro ao gerar arquivo de backup.', 'error');
+    }
+  }
+
+  // ── Backup: Import JSON ────────────────────────────────────
+  function _importDados(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset o input para permitir re-importar o mesmo arquivo
+    e.target.value = '';
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const backup = JSON.parse(ev.target.result);
+
+        // Validação básica ANTES de qualquer escrita
+        if (!backup || typeof backup !== 'object' || backup.app !== 'cjp-gestao-condominial') {
+          App.showToast('Este arquivo não é um backup válido deste sistema.', 'error');
+          return;
+        }
+        if (!Array.isArray(backup.data?.[Storage.KEYS.LANCAMENTOS])) {
+          App.showToast('Arquivo de backup corrompido ou incompleto.', 'error');
+          return;
+        }
+
+        const totalLanc = backup.data[Storage.KEYS.LANCAMENTOS].length;
+        const dataStr   = backup.exportedAt
+          ? new Date(backup.exportedAt).toLocaleString('pt-BR')
+          : 'data desconhecida';
+
+        const confirmMsg =
+          `Backup gerado em: ${dataStr}\n` +
+          `Contém ${totalLanc} lançamento(s).\n\n` +
+          `⚠️ Isso irá SUBSTITUIR todos os dados atuais.\nDeseja continuar?`;
+
+        if (!confirm(confirmMsg)) {
+          App.showToast('Importação cancelada.', 'default');
+          return;
+        }
+
+        // Persiste somente após a confirmação do usuário
+        const result = Storage.importAll(backup);
+        if (!result.ok) {
+          App.showToast(`Falha ao importar: ${result.error}`, 'error');
+          return;
+        }
+
+        // Recarrega módulo internamente
+        _loadData();
+        _buildCategorySelect();
+        _render();
+
+        App.showToast(`${totalLanc} lançamento(s) importados com sucesso! ✅`, 'success');
+      } catch {
+        App.showToast('Arquivo inválido ou corrompido.', 'error');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
   }
 
   // ── Export Balance PDF ──────────────────────────────────────

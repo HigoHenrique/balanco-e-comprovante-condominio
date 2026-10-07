@@ -1322,3 +1322,97 @@ input.error, select.error { border-color: var(--danger); }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Backup & Export Section ─────────────────────────────── */
+
+/* btn-success variant */
+.btn-success {
+  background: var(--success);
+  color: #fff;
+  border: none;
+}
+.btn-success:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22,163,74,.3);
+}
+.btn-success:active { transform: translateY(0); }
+
+.balanco-export-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* Backup card */
+.backup-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.backup-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.backup-card-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.backup-card-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.backup-card-header p {
+  font-size: .85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* PDF card */
+.pdf-export-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Desktop: side-by-side */
+@media (min-width: 768px) {
+  .balanco-export-section {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .backup-card {
+    flex: 1;
+  }
+
+  .pdf-export-card {
+    flex-shrink: 0;
+    justify-content: center;
+    min-width: 260px;
+  }
+}

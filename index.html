@@ -559,15 +559,51 @@
         </div>
       </div><!-- /table-wrapper -->
 
-      <!-- Export Button -->
-      <div class="balanco-export">
-        <button id="btn-export-balanco-pdf" class="btn btn-primary btn-lg">
-          📄 Exportar Balanço em PDF
-        </button>
-        <p class="field-hint mt-8 text-center">
-          ℹ️ O PDF inclui o resumo financeiro e todos os lançamentos do filtro selecionado.
-        </p>
+      <!-- Backup & Export Section -->
+      <div class="balanco-export-section">
+
+        <!-- Backup Card -->
+        <div class="backup-card">
+          <div class="backup-card-header">
+            <span class="backup-card-icon">💾</span>
+            <div>
+              <h3>Backup dos Dados</h3>
+              <p>Salve ou restaure todos os lançamentos e categorias em um arquivo JSON seguro.</p>
+            </div>
+          </div>
+          <div class="backup-actions">
+            <button id="btn-backup-exportar" class="btn btn-success">
+              ⬇️ Exportar Backup
+            </button>
+            <button id="btn-backup-importar" class="btn btn-outline">
+              ⬆️ Importar Backup
+            </button>
+            <!-- Input oculto para seleção de arquivo -->
+            <input
+              type="file"
+              id="input-backup-file"
+              accept=".json,application/json"
+              style="display:none;"
+              aria-hidden="true"
+            >
+          </div>
+          <p class="field-hint mt-8">
+            ℹ️ O arquivo exportado pode ser guardado em qualquer local seguro e reimportado quando necessário.
+          </p>
+        </div>
+
+        <!-- PDF Export -->
+        <div class="pdf-export-card">
+          <button id="btn-export-balanco-pdf" class="btn btn-primary btn-lg">
+            📄 Exportar Balanço em PDF
+          </button>
+          <p class="field-hint mt-8 text-center">
+            ℹ️ O PDF inclui o resumo financeiro e todos os lançamentos do filtro selecionado.
+          </p>
+        </div>
+
       </div>
+
 
     </section><!-- /screen-balanco -->
 

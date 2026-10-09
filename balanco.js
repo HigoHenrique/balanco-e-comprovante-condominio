@@ -233,6 +233,10 @@ const Balanco = (() => {
       }
     }
 
+    // Detalhe (opcional; lançamentos antigos não o possuem)
+    const detalheInput = document.getElementById('input-lancamento-detalhe');
+    if (detalheInput) detalheInput.value = l.detalhe || '';
+
     // Tipo
     const tipoRadios = document.querySelectorAll('input[name="tipo"]');
     tipoRadios.forEach(r => { r.checked = r.value === l.tipo; });
@@ -279,6 +283,7 @@ const Balanco = (() => {
 
     const tipoEl = document.querySelector('input[name="tipo"]:checked');
     const tipo   = tipoEl ? tipoEl.value : 'despesa';
+    const detalhe = (document.getElementById('input-lancamento-detalhe')?.value || '').trim();
 
     const valorRaw = parseFloat(document.getElementById('input-lancamento-valor')?.value || '0');
     const mes      = parseInt(document.getElementById('input-lancamento-mes')?.value || '0');
@@ -294,7 +299,7 @@ const Balanco = (() => {
       // Update existing
       const idx = lancamentos.findIndex(l => l.id === editingId);
       if (idx !== -1) {
-        lancamentos[idx] = { ...lancamentos[idx], categoria, tipo, valor: valorRaw, mes, ano };
+        lancamentos[idx] = { ...lancamentos[idx], categoria, detalhe, tipo, valor: valorRaw, mes, ano };
         App.showToast('Lançamento atualizado com sucesso! ✅', 'success');
       }
     } else {
@@ -302,6 +307,7 @@ const Balanco = (() => {
       lancamentos.push({
         id: App.generateId(),
         categoria,
+        detalhe,
         tipo,
         valor: valorRaw,
         mes,
@@ -416,6 +422,7 @@ const Balanco = (() => {
 
       tr.innerHTML = `
         <td class="td-desc">${_escapeHtml(l.categoria)}</td>
+        <td class="td-desc" style="color:var(--text-secondary); font-size:.85rem;">${_escapeHtml(l.detalhe || '—')}</td>
         <td>${tipoLabel}</td>
         <td style="white-space:nowrap; color:var(--text-secondary); font-size:.85rem;">${refText}</td>
         <td style="font-weight:700; color:${l.tipo === 'receita' ? 'var(--success)' : 'var(--danger)'}; white-space:nowrap;">
@@ -678,6 +685,7 @@ const Balanco = (() => {
       .map(l => `
         <tr>
           <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0;">${_escapeHtml(l.categoria)}</td>
+          <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; color:#64748b;">${_escapeHtml(l.detalhe || '—')}</td>
           <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0; color:${l.tipo === 'receita' ? '#16a34a' : '#dc2626'}; font-weight:700;">
             ${l.tipo === 'receita' ? '↑ Receita' : '↓ Despesa'}
           </td>
@@ -732,6 +740,7 @@ const Balanco = (() => {
           <thead>
             <tr style="background:#f8fafc;">
               <th style="padding:12px 14px; text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0;">Categoria</th>
+              <th style="padding:12px 14px; text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0;">Detalhe</th>
               <th style="padding:12px 14px; text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0;">Tipo</th>
               <th style="padding:12px 14px; text-align:left; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0;">Referência</th>
               <th style="padding:12px 14px; text-align:right; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0;">Valor</th>
@@ -740,7 +749,7 @@ const Balanco = (() => {
           <tbody>${rows}</tbody>
           <tfoot>
             <tr style="background:#f8fafc; font-weight:700;">
-              <td colspan="3" style="padding:14px; border-top:2px solid #e2e8f0; font-size:.85rem; color:#1e293b;">SALDO DO PERÍODO</td>
+              <td colspan="4" style="padding:14px; border-top:2px solid #e2e8f0; font-size:.85rem; color:#1e293b;">SALDO DO PERÍODO</td>
               <td style="padding:14px; border-top:2px solid #e2e8f0; font-size:1rem; text-align:right; color:${saldo >= 0 ? '#16a34a' : '#dc2626'};">${App.formatCurrency(saldo)}</td>
             </tr>
           </tfoot>

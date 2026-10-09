@@ -459,6 +459,18 @@
             <span class="field-hint">ℹ️ Esta categoria será salva para uso futuro.</span>
           </div>
 
+          <!-- Detalhe opcional do lançamento -->
+          <div class="form-group">
+            <label for="input-lancamento-detalhe">Detalhe <span class="field-hint">(opcional)</span></label>
+            <input
+              type="text"
+              id="input-lancamento-detalhe"
+              placeholder="Ex: Manutenção do portão social"
+              maxlength="250"
+              inputmode="text"
+            >
+          </div>
+
           <!-- Tipo (Receita / Despesa) -->
           <div class="form-group">
             <label>Tipo de Lançamento *</label>
@@ -531,6 +543,7 @@
             <thead>
               <tr>
                 <th>Categoria</th>
+                <th>Detalhe</th>
                 <th>Tipo</th>
                 <th>Referência</th>
                 <th>Valor</th>
@@ -542,7 +555,7 @@
             </tbody>
             <tfoot id="lancamentos-totals" class="hidden">
               <tr class="totals-row">
-                <td colspan="2" style="color:var(--text-muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.5px;">Total do período</td>
+                <td colspan="3" style="color:var(--text-muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.5px;">Total do período</td>
                 <td style="color:var(--success); white-space:nowrap;" id="totals-receitas">R$ 0,00</td>
                 <td style="color:var(--danger); white-space:nowrap;" id="totals-despesas">R$ 0,00</td>
                 <td style="white-space:nowrap; text-align:right;" id="totals-saldo">R$ 0,00</td>

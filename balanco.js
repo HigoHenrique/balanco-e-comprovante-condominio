@@ -545,7 +545,9 @@ const Balanco = (() => {
 
   // ── Export Balance PDF ──────────────────────────────────────
   async function _exportBalancoPdf() {
-    if (!window.jspdf || (typeof htmlToImage === 'undefined' && typeof html2canvas === 'undefined')) {
+    // html-to-image tenta ler cssRules das folhas do Google Fonts e falha por
+    // CORS. O html2canvas é local e renderiza a árvore já aplicada pelo browser.
+    if (!window.jspdf || typeof html2canvas === 'undefined') {
       App.showToast('Bibliotecas de exportação não carregadas. Recarregue a página.', 'error');
       return;
     }
@@ -559,32 +561,33 @@ const Balanco = (() => {
       if (!printEl) throw new Error('Print element not found');
 
       _buildPrintView(printEl, filtered);
-      printEl.style.left = '-9999px';
-      printEl.style.display = 'block';
+
+      // O elemento precisa permanecer renderizável para a biblioteca de captura.
+      // `z-index:-1` faz com que ele seja pintado atrás do documento e gera um
+      // canvas branco em alguns navegadores. Mantê-lo fora da tela é suficiente.
+      printEl.style.cssText =
+        'display:block; position:absolute; top:0; left:-9999px;' +
+        'width:800px; background:#ffffff;';
 
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 100)); // small delay for render
+      await new Promise(r => setTimeout(r, 250)); // aguarda renderização completa
 
-      let canvas;
-      if (typeof htmlToImage !== 'undefined') {
-        canvas = await htmlToImage.toCanvas(printEl, {
-          pixelRatio: 2,
-          backgroundColor: '#ffffff',
-          width: 800,
-        });
-      } else {
-        canvas = await html2canvas(printEl, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          scrollX: 0,
-          scrollY: 0,
-          logging: false,
-          width: 800,
-        });
+      const canvas = await html2canvas(printEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        logging: false,
+        width: 800,
+      });
+
+      if (!_canvasHasContent(canvas)) {
+        throw new Error('A captura do balanço resultou em uma imagem vazia');
       }
 
-      printEl.style.display = 'none';
+      // Oculta o elemento de impressão
+      printEl.style.cssText = 'display:none; position:absolute; left:-9999px; top:0; width:800px;';
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
@@ -634,6 +637,28 @@ const Balanco = (() => {
   }
 
   // ── Build Print View ───────────────────────────────────────
+  // Evita gerar um PDF aparentemente válido, porém totalmente em branco.
+  function _canvasHasContent(canvas) {
+    if (!canvas || canvas.width < 2 || canvas.height < 2) return false;
+
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return false;
+
+    // Amostra o canvas inteiro. A versão anterior olhava só o canto superior
+    // esquerdo, que é propositalmente branco por causa do espaçamento do layout.
+    const stepX = Math.max(1, Math.floor(canvas.width / 40));
+    const stepY = Math.max(1, Math.floor(canvas.height / 40));
+
+    for (let y = 0; y < canvas.height; y += stepY) {
+      for (let x = 0; x < canvas.width; x += stepX) {
+        const [red, green, blue, alpha] = context.getImageData(x, y, 1, 1).data;
+        if (alpha > 0 && (red < 245 || green < 245 || blue < 245)) return true;
+      }
+    }
+
+    return false;
+  }
+
   function _buildPrintView(el, items) {
     const meses = App.getMeses();
     const filterMes = parseInt(document.getElementById('filter-mes')?.value || '0');

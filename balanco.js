@@ -17,6 +17,8 @@ const Balanco = (() => {
   let lancamentos      = [];
   let categoriasCustom = [];
   let editingId        = null;
+  let paginaAtual      = 1;
+  const ITENS_POR_PAGINA = 10;
 
   // ── Init ───────────────────────────────────────────────────
   function init() {
@@ -145,9 +147,23 @@ const Balanco = (() => {
 
     // Filters
     document.getElementById('filter-mes')
-      ?.addEventListener('change', _render);
+      ?.addEventListener('change', _resetPaginationAndRender);
     document.getElementById('filter-ano')
-      ?.addEventListener('change', _render);
+      ?.addEventListener('change', _resetPaginationAndRender);
+
+    // Pagination affects only the visible table; PDF export uses _getFiltered().
+    document.getElementById('btn-lancamentos-prev')
+      ?.addEventListener('click', () => {
+        if (paginaAtual > 1) {
+          paginaAtual--;
+          _render();
+        }
+      });
+    document.getElementById('btn-lancamentos-next')
+      ?.addEventListener('click', () => {
+        paginaAtual++;
+        _render();
+      });
 
     // Export balance PDF
     document.getElementById('btn-export-balanco-pdf')
@@ -350,6 +366,11 @@ const Balanco = (() => {
     _renderTable(filtered);
   }
 
+  function _resetPaginationAndRender() {
+    paginaAtual = 1;
+    _render();
+  }
+
   // ── Render Summary Cards ───────────────────────────────────
   function _renderSummary(items) {
     const totalReceitas = items
@@ -388,6 +409,10 @@ const Balanco = (() => {
     const tbody    = document.getElementById('lancamentos-tbody');
     const empty    = document.getElementById('lancamentos-empty');
     const totals   = document.getElementById('lancamentos-totals');
+    const pagination = document.getElementById('lancamentos-pagination');
+    const pageInfo   = document.getElementById('lancamentos-page-info');
+    const prevBtn    = document.getElementById('btn-lancamentos-prev');
+    const nextBtn    = document.getElementById('btn-lancamentos-next');
     if (!tbody) return;
 
     tbody.innerHTML = '';
@@ -395,6 +420,7 @@ const Balanco = (() => {
     if (items.length === 0) {
       if (empty)  empty.classList.remove('hidden');
       if (totals) totals.classList.add('hidden');
+      if (pagination) pagination.classList.add('hidden');
       return;
     }
 
@@ -410,7 +436,12 @@ const Balanco = (() => {
       return a.tipo.localeCompare(b.tipo);
     });
 
-    sorted.forEach(l => {
+    const totalPages = Math.ceil(sorted.length / ITENS_POR_PAGINA);
+    paginaAtual = Math.min(paginaAtual, totalPages);
+    const firstItemIndex = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const pageItems = sorted.slice(firstItemIndex, firstItemIndex + ITENS_POR_PAGINA);
+
+    pageItems.forEach(l => {
       const tr = document.createElement('tr');
 
       const tipoLabel = l.tipo === 'receita'
@@ -436,6 +467,16 @@ const Balanco = (() => {
 
       tbody.appendChild(tr);
     });
+
+    if (pagination) {
+      const lastItemIndex = Math.min(firstItemIndex + ITENS_POR_PAGINA, sorted.length);
+      pagination.classList.toggle('hidden', totalPages <= 1);
+      if (pageInfo) {
+        pageInfo.textContent = `Página ${paginaAtual} de ${totalPages} · ${firstItemIndex + 1}–${lastItemIndex} de ${sorted.length}`;
+      }
+      if (prevBtn) prevBtn.disabled = paginaAtual === 1;
+      if (nextBtn) nextBtn.disabled = paginaAtual === totalPages;
+    }
 
     // Event delegation for action buttons
     tbody.querySelectorAll('[data-action]').forEach(btn => {

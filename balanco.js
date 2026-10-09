@@ -429,11 +429,11 @@ const Balanco = (() => {
 
     const meses = App.getMeses();
 
-    // Sort by year desc, month desc, then by type (receitas first)
+    // Sort by reference period, then by most recently created entry.
     const sorted = [...items].sort((a, b) => {
       if (b.ano !== a.ano) return b.ano - a.ano;
       if (b.mes !== a.mes) return b.mes - a.mes;
-      return a.tipo.localeCompare(b.tipo);
+      return (b.criadoEm || 0) - (a.criadoEm || 0);
     });
 
     const totalPages = Math.ceil(sorted.length / ITENS_POR_PAGINA);
@@ -722,7 +722,11 @@ const Balanco = (() => {
     const saldo = totalReceitas - totalDespesas;
 
     const rows = [...items]
-      .sort((a, b) => b.ano - a.ano || b.mes - a.mes)
+      .sort((a, b) =>
+        b.ano - a.ano ||
+        b.mes - a.mes ||
+        (b.criadoEm || 0) - (a.criadoEm || 0)
+      )
       .map(l => `
         <tr>
           <td style="padding:10px 14px; border-bottom:1px solid #e2e8f0;">${_escapeHtml(l.categoria)}</td>

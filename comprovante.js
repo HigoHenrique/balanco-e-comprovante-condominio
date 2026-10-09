@@ -113,7 +113,7 @@ const Comprovante = (() => {
     const meses = App.getMeses();
     const mesNome = mesIdx >= 1 && mesIdx <= 12 ? meses[mesIdx - 1] : null;
 
-    return { nome, apto, bloco, quadra, mesNome, ano, valorRaw, desc, finalTipo, tipoSelect };
+    return { nome, apto, bloco, quadra, mesIdx, mesNome, ano, valorRaw, desc, finalTipo, tipoSelect };
   }
 
   // ── Update Preview ─────────────────────────────────────────
@@ -341,8 +341,10 @@ const Comprovante = (() => {
 
     try {
       const dataUrl = await _captureReceiptDataUrl(format, 0.95);
-      const { nome, apto } = _getFormData();
-      const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.${format}`);
+      const { nome, apto, mesIdx, ano } = _getFormData();
+      const filename = _sanitizeFilename(
+        `comprovante-${nome || 'morador'}-${apto || 'apto'}-mes-${mesIdx || 'mes'}-ano-${ano || 'ano'}.${format}`
+      );
 
       _downloadFile(dataUrl, filename);
       App.showToast(`Comprovante exportado como ${format.toUpperCase()}! ✅`, 'success');
@@ -395,8 +397,10 @@ const Comprovante = (() => {
 
       pdf.addImage(dataUrl, 'PNG', xPos, yPos, imgWidth, imgHeight);
 
-      const { nome, apto } = _getFormData();
-      const filename = _sanitizeFilename(`comprovante-${nome || 'morador'}-${apto || 'apto'}.pdf`);
+      const { nome, apto, mesIdx, ano } = _getFormData();
+      const filename = _sanitizeFilename(
+        `comprovante-${nome || 'morador'}-${apto || 'apto'}-mes-${mesIdx || 'mes'}-ano-${ano || 'ano'}.pdf`
+      );
       pdf.save(filename);
 
       App.showToast('Comprovante exportado em PDF! ✅', 'success');
